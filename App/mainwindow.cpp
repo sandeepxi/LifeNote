@@ -8,8 +8,8 @@ MainWindow::MainWindow(QWidget *parent)
     ui->setupUi(this);
 
     SvgTextLabel *todaySvgLabel=new SvgTextLabel;
-    todaySvgLabel->setText("今日");
-    todaySvgLabel->setSvgLabel(":/res/icons/today.svg");
+    todaySvgLabel->setText("今日1ß");
+    todaySvgLabel->setSvgLabel(":/res/icons/oday.svg");
 
     SvgTextLabel *saveSvgLabel=new SvgTextLabel;
     saveSvgLabel->setText("收藏");
