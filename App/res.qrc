@@ -1,0 +1,8 @@
+<RCC>
+    <qresource prefix="/res">
+        <file>icons/today.svg</file>
+        <file>icons/find.svg</file>
+        <file>icons/save.svg</file>
+    </qresource>
+    <qresource prefix="/images"/>
+</RCC>
