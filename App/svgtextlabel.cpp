@@ -18,7 +18,7 @@ void SvgTextLabel::setSvgLabel(QString svgPath) {
     svgRender->load(svgPath);
 
     QPixmap* pixmap = new QPixmap(20,20);
-    //pixmap->fill(Qt::transparent);//设置背景透明
+    pixmap->fill(Qt::transparent);//设置背景透明
     QPainter painter(pixmap);
     svgRender->render(&painter);
     _pixmap = pixmap;
