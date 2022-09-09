@@ -2,7 +2,7 @@
 #define MAINWINDOW_H
 
 #include <QMainWindow>
-#include "svgtextlabel.h"
+//#include "svgtextlabel.h"
 
 
 QT_BEGIN_NAMESPACE
@@ -19,6 +19,10 @@ public:
 
 private:
     Ui::MainWindow *ui;
+
+private slots:
+    void boldBtn_clicked();
+
 
 };
 #endif // MAINWINDOW_H

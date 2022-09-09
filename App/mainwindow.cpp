@@ -1,5 +1,6 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
+#include <QMessageBox>
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -7,24 +8,42 @@ MainWindow::MainWindow(QWidget *parent)
 {
     ui->setupUi(this);
 
-    SvgTextLabel *todaySvgLabel=new SvgTextLabel;
-    todaySvgLabel->setText("今日");
-    todaySvgLabel->setSvgLabel(":/res/icons/today.svg");
+    // this->setWindowFlags(Qt::FramelessWindowHint);
+    //设置左侧侧边栏样式
+    ui->leftBar->setStyleSheet(QString("QAbstractButton{min-height:%1px;max-height:%1px;margin:0px;border:none;}").arg(17));
+    ui->titleBar->setStyleSheet(QString("QAbstractButton{min-height:%1px;max-height:%1px;margin:0px;}").arg(25));
 
-    SvgTextLabel *saveSvgLabel=new SvgTextLabel;
-    saveSvgLabel->setText("收藏");
-    saveSvgLabel->setSvgLabel(":/res/icons/save.svg");
+    //设置左侧按钮icon
+    ui->todayBtn->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
+    ui->todayBtn->setIcon(QIcon(":/res/icons/today.png"));
+    ui->saveBtn->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
+    ui->saveBtn->setIcon(QIcon(":/res/icons/save.png"));
+    ui->searchBtn->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
+    ui->searchBtn->setIcon(QIcon(":/res/icons/search.png"));
+    ui->recycleBtn->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
+    ui->recycleBtn->setIcon(QIcon(":/res/icons/recycle.png"));
 
-    SvgTextLabel *findSvgLabel=new SvgTextLabel;
-    findSvgLabel->setText("搜索");
-    findSvgLabel->setSvgLabel(":/res/icons/find.svg");
+    //设置标题栏按钮
+    ui->boldBtn->setIcon(QIcon(":/res/icons/bold.png"));
+    ui->italicBtn->setIcon(QIcon(":/res/icons/italic.png"));
+    ui->colorBtn->setIcon(QIcon(":/res/icons/color.png"));
+    ui->underlineBtn->setIcon(QIcon(":/res/icons/underline.png"));
+    ui->deletelineBtn->setIcon(QIcon(":/res/icons/deleteline.png"));
+    connect(ui->boldBtn,SIGNAL(clicked()),this,SLOT(boldBtn_clicked()));
+}
 
-    ui->leftLayout->addWidget(todaySvgLabel);
-    ui->leftLayout->addWidget(saveSvgLabel);
-    ui->leftLayout->addWidget(findSvgLabel);
-    QSpacerItem *sp= new QSpacerItem(20,500,QSizePolicy::Fixed,QSizePolicy::Minimum);
-    ui->leftLayout->addSpacerItem(sp);
-
+void MainWindow::boldBtn_clicked()
+{
+    QTextCharFormat fmt;
+    if(ui->boldBtn->isChecked())
+    {
+        fmt.setFontWeight(QFont::Bold);
+    }
+    else
+    {
+       fmt.setFontWeight(QFont::Normal);
+    }
+    ui->textEdit->mergeCurrentCharFormat(fmt);
 }
 
 MainWindow::~MainWindow()

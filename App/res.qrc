@@ -1,8 +1,15 @@
 <RCC>
     <qresource prefix="/res">
-        <file>icons/today.svg</file>
-        <file>icons/find.svg</file>
-        <file>icons/save.svg</file>
+        <file>icons/recycle.png</file>
+        <file>icons/save.png</file>
+        <file>icons/search.png</file>
+        <file>icons/today.png</file>
+        <file>icons/bold.png</file>
+        <file>icons/deleteline.png</file>
+        <file>icons/fontlarge.png</file>
+        <file>icons/fontsmall.png</file>
+        <file>icons/italic.png</file>
+        <file>icons/underline.png</file>
+        <file>icons/color.png</file>
     </qresource>
-    <qresource prefix="/images"/>
 </RCC>

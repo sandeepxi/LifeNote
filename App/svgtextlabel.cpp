@@ -13,6 +13,12 @@ SvgTextLabel::~SvgTextLabel()
     delete ui;
 }
 
+//调用demo
+//SvgTextLabel *todaySvgLabel=new SvgTextLabel;
+//todaySvgLabel->setText("今日");
+//todaySvgLabel->setSvgLabel(":/res/icons/today.svg");
+//ui->leftLayout->addWidget(todaySvgLabel);
+
 void SvgTextLabel::setSvgLabel(QString svgPath) {
     QSvgRenderer* svgRender = new QSvgRenderer();
     svgRender->load(svgPath);
