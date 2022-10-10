@@ -2,8 +2,14 @@
 #define MAINWINDOW_H
 
 #include <QMainWindow>
+#include<QMessageBox>
 //#include "svgtextlabel.h"
-
+#include<QSpinBox>
+#include<QColorDialog>
+#include<QTreeWidget>
+#include<QTreeWidgetItem>
+#include<QStandardItemModel>
+#include<QStandardItem>
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
@@ -19,10 +25,11 @@ public:
 
 private:
     Ui::MainWindow *ui;
-
 private slots:
     void boldBtn_clicked();
-
+    void italicBtn_clicked();
+    void underlineBtn_clicked();
+    void colorBtn_clicked();
 
 };
 #endif // MAINWINDOW_H
