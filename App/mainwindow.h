@@ -25,6 +25,7 @@ public:
 
 private:
     Ui::MainWindow *ui;
+    void setItemIcon(QTreeWidgetItem* child_item);
 private slots:
     void boldBtn_clicked();
     void italicBtn_clicked();

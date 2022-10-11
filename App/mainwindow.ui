@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>807</width>
-    <height>529</height>
+    <width>596</width>
+    <height>366</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -129,13 +129,13 @@
         <widget class="QWidget" name="leftBar" native="true">
          <property name="minimumSize">
           <size>
-           <width>30</width>
+           <width>0</width>
            <height>0</height>
           </size>
          </property>
          <property name="maximumSize">
           <size>
-           <width>300</width>
+           <width>165</width>
            <height>16777215</height>
           </size>
          </property>
@@ -153,48 +153,20 @@
            <number>0</number>
           </property>
           <item>
-           <widget class="QToolButton" name="saveBtn">
-            <property name="text">
-             <string>收藏</string>
-            </property>
-           </widget>
-          </item>
-          <item>
            <widget class="QToolButton" name="searchBtn">
             <property name="text">
              <string>搜索</string>
             </property>
            </widget>
           </item>
-          <item alignment="Qt::AlignLeft">
+          <item>
            <widget class="QTreeWidget" name="treeWidget">
-            <property name="enabled">
-             <bool>true</bool>
-            </property>
-            <property name="minimumSize">
-             <size>
-              <width>0</width>
-              <height>0</height>
-             </size>
-            </property>
             <property name="maximumSize">
              <size>
               <width>16777215</width>
               <height>16777215</height>
              </size>
             </property>
-            <property name="headerHidden">
-             <bool>false</bool>
-            </property>
-            <attribute name="headerVisible">
-             <bool>true</bool>
-            </attribute>
-            <attribute name="headerDefaultSectionSize">
-             <number>100</number>
-            </attribute>
-            <attribute name="headerHighlightSections">
-             <bool>false</bool>
-            </attribute>
             <column>
              <property name="text">
               <string notr="true">1</string>
@@ -206,6 +178,9 @@
            <spacer name="verticalSpacer">
             <property name="orientation">
              <enum>Qt::Vertical</enum>
+            </property>
+            <property name="sizeType">
+             <enum>QSizePolicy::Minimum</enum>
             </property>
             <property name="sizeHint" stdset="0">
              <size>

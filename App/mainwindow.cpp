@@ -8,7 +8,6 @@ MainWindow::MainWindow(QWidget *parent)
 {
     ui->setupUi(this);
 
-    // this->setWindowFlags(Qt::FramelessWindowHint);
     //设置左侧侧边栏样式
     ui->leftBar->setStyleSheet(QString("QAbstractButton{min-height:%1px;max-height:%1px;margin:0px;border:none;}").arg(17));
     ui->titleBar->setStyleSheet(QString("QAbstractButton{min-height:%1px;max-height:%1px;margin:0px;}").arg(25));
@@ -16,30 +15,34 @@ MainWindow::MainWindow(QWidget *parent)
     ui->treeWidget->setColumnCount(1);
 
     ui->treeWidget->setHeaderLabels(QStringList()<<"first");
-     ui->treeWidget->setColumnWidth(0, 20);  //设置列宽
-    //ui->treeWidget->header()->setStretchLastSection(false);
-    //ui->treeWidget->header()->setSectionResizeMode(QHeaderView::ResizeToContents);
+    //ui->treeWidget->setColumnWidth(0, 40);  //设置列宽
+    ui->treeWidget->header()->setStretchLastSection(false);
+    ui->treeWidget->header()->setSectionResizeMode(QHeaderView::ResizeToContents);
     //隐藏标题栏
-    //ui->treeWidget->header()->setVisible(false);
+    ui->treeWidget->header()->setVisible(false);
 
     //设置背景色为透明
-    //ui->treeWidget->setStyleSheet("background-color:transparent;");
+    ui->treeWidget->setStyleSheet("background-color:transparent;");
     setStyleSheet("QTreeWidget::item{""height:25px;""}");
     //设置不同层次菜单的缩进
     ui->treeWidget->setIndentation(15);
     //设置边框不可见
     ui->treeWidget->setFrameStyle(QFrame::NoFrame);
 
+    //加载节点需要通过配置文件，而不是写死
     QTreeWidgetItem *rootItem_1 = new QTreeWidgetItem(ui->treeWidget);
     QTreeWidgetItem *childItem_1_1 = new QTreeWidgetItem();
-
     QTreeWidgetItem *childItem_1_2 = new QTreeWidgetItem();
     QTreeWidgetItem *childItem_1_2_1 = new QTreeWidgetItem();
 
     QTreeWidgetItem *rootItem_2 = new QTreeWidgetItem(ui->treeWidget);
     QTreeWidgetItem *childItem_2_1 = new QTreeWidgetItem();
     QTreeWidgetItem *childItem_2_2 = new QTreeWidgetItem();
-    QTreeWidgetItem *childItem_2_3 = new QTreeWidgetItem();
+
+
+    QTreeWidgetItem *rootItem_3 = new QTreeWidgetItem(ui->treeWidget);
+    QTreeWidgetItem *childItem_3_1 = new QTreeWidgetItem();
+    QTreeWidgetItem *childItem_3_2 = new QTreeWidgetItem();
 
     rootItem_1->setText(0,QObject::tr("笔记本"));
     childItem_1_1->setText(0,QObject::tr("每日工作"));
@@ -47,9 +50,13 @@ MainWindow::MainWindow(QWidget *parent)
     childItem_1_2_1->setText(0,QObject::tr("人生感悟"));
     childItem_1_2_1->setForeground(0,QBrush(QColor(Qt::blue)));
 
-    rootItem_2->setText(0,QObject::tr("废纸篓"));
+    rootItem_2->setText(0,QObject::tr("收藏"));
     childItem_2_1->setText(0,QObject::tr("2022/10/09"));
     childItem_2_2->setText(0,QObject::tr("睡眠"));
+
+    rootItem_3->setText(0,QObject::tr("废纸篓"));
+    childItem_3_1->setText(0,QObject::tr("国际化"));
+    childItem_3_2->setText(0,QObject::tr("pc直播"));
 
     ui->treeWidget->addTopLevelItem(rootItem_1);
     rootItem_1->addChild(childItem_1_1);
@@ -58,34 +65,21 @@ MainWindow::MainWindow(QWidget *parent)
     ui->treeWidget->addTopLevelItem(rootItem_2);
     rootItem_2->addChild(childItem_2_1);
     rootItem_2->addChild(childItem_2_2);
-    rootItem_2->addChild(childItem_2_3);
+
+    ui->treeWidget->addTopLevelItem(rootItem_3);
+    rootItem_3->addChild(childItem_3_1);
+    rootItem_3->addChild(childItem_3_2);
+
 
     int size = ui->treeWidget->topLevelItemCount();
     QTreeWidgetItem *child;
     for (int i = 0; i < size; i++)
     {
         child = ui->treeWidget->topLevelItem(i);
-        child->setIcon(0,QIcon(":/res/icons/parentnote.png"));
-        int childCount = child->childCount();
-        for (int j = 0; j < childCount; ++j)
-        {
-            QTreeWidgetItem * grandson = child->child(j);
-            if(grandson->childCount()>0)
-            {
-                grandson->setIcon(0,QIcon(":/res/icons/parentnote.png"));
-            }
-            else
-            {
-                grandson->setIcon(0,QIcon(":/res/icons/childnote.png"));
-            }
-        }
+        setItemIcon(child);
     }
 
-    //ui->treeWidget->expandAll(); //结点全部展开
-
     //设置左侧按钮icon
-    ui->saveBtn->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
-    ui->saveBtn->setIcon(QIcon(":/res/icons/save.png"));
     ui->searchBtn->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
     ui->searchBtn->setIcon(QIcon(":/res/icons/search.png"));
 
@@ -102,6 +96,32 @@ MainWindow::MainWindow(QWidget *parent)
     connect(ui->underlineBtn,SIGNAL(clicked()),this,SLOT(underlineBtn_clicked()));
     connect(ui->colorBtn,SIGNAL(clicked()),this,SLOT(colorBtn_clicked()));
 
+
+}
+void MainWindow::setItemIcon(QTreeWidgetItem* child)
+{
+    int childCount = child->childCount();
+    if(childCount>0)
+    {
+         child->setIcon(0,QIcon(":/res/icons/parentnote.png"));
+         for (int j = 0; j < childCount; ++j)
+         {
+             QTreeWidgetItem * grandson = child->child(j);
+             if(grandson->childCount()>0)
+             {
+                 grandson->setIcon(0,QIcon(":/res/icons/parentnote.png"));
+                 setItemIcon(grandson);
+             }
+             else
+             {
+                 grandson->setIcon(0,QIcon(":/res/icons/childnote.png"));
+             }
+         }
+    }
+    else
+    {
+         child->setIcon(0,QIcon(":/res/icons/childnote.png"));
+    }
 
 }
 
