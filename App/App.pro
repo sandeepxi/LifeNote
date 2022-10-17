@@ -12,10 +12,12 @@ CONFIG += c++17
 SOURCES += \
     main.cpp \
     mainwindow.cpp \
+    nodeconfig.cpp \
     svgtextlabel.cpp
 
 HEADERS += \
     mainwindow.h \
+    nodeconfig.h \
     svgtextlabel.h
 
 FORMS += \

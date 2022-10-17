@@ -1,4 +1,5 @@
 #include "mainwindow.h"
+#include "nodeconfig.h"
 #include "ui_mainwindow.h"
 
 
@@ -29,47 +30,9 @@ MainWindow::MainWindow(QWidget *parent)
     //设置边框不可见
     ui->treeWidget->setFrameStyle(QFrame::NoFrame);
 
-    //加载节点需要通过配置文件，而不是写死
-    QTreeWidgetItem *rootItem_1 = new QTreeWidgetItem(ui->treeWidget);
-    QTreeWidgetItem *childItem_1_1 = new QTreeWidgetItem();
-    QTreeWidgetItem *childItem_1_2 = new QTreeWidgetItem();
-    QTreeWidgetItem *childItem_1_2_1 = new QTreeWidgetItem();
-
-    QTreeWidgetItem *rootItem_2 = new QTreeWidgetItem(ui->treeWidget);
-    QTreeWidgetItem *childItem_2_1 = new QTreeWidgetItem();
-    QTreeWidgetItem *childItem_2_2 = new QTreeWidgetItem();
-
-
-    QTreeWidgetItem *rootItem_3 = new QTreeWidgetItem(ui->treeWidget);
-    QTreeWidgetItem *childItem_3_1 = new QTreeWidgetItem();
-    QTreeWidgetItem *childItem_3_2 = new QTreeWidgetItem();
-
-    rootItem_1->setText(0,QObject::tr("笔记本"));
-    childItem_1_1->setText(0,QObject::tr("每日工作"));
-    childItem_1_2->setText(0,QObject::tr("节假日记"));
-    childItem_1_2_1->setText(0,QObject::tr("人生感悟"));
-    childItem_1_2_1->setForeground(0,QBrush(QColor(Qt::blue)));
-
-    rootItem_2->setText(0,QObject::tr("收藏"));
-    childItem_2_1->setText(0,QObject::tr("2022/10/09"));
-    childItem_2_2->setText(0,QObject::tr("睡眠"));
-
-    rootItem_3->setText(0,QObject::tr("废纸篓"));
-    childItem_3_1->setText(0,QObject::tr("国际化"));
-    childItem_3_2->setText(0,QObject::tr("pc直播"));
-
-    ui->treeWidget->addTopLevelItem(rootItem_1);
-    rootItem_1->addChild(childItem_1_1);
-    rootItem_1->addChild(childItem_1_2);
-    childItem_1_2->addChild(childItem_1_2_1);
-    ui->treeWidget->addTopLevelItem(rootItem_2);
-    rootItem_2->addChild(childItem_2_1);
-    rootItem_2->addChild(childItem_2_2);
-
-    ui->treeWidget->addTopLevelItem(rootItem_3);
-    rootItem_3->addChild(childItem_3_1);
-    rootItem_3->addChild(childItem_3_2);
-
+    //通过配置文件，创建node
+    nodeconfig *config =new nodeconfig;
+    config->readnodefile(ui->treeWidget);
 
     int size = ui->treeWidget->topLevelItemCount();
     QTreeWidgetItem *child;
@@ -78,7 +41,6 @@ MainWindow::MainWindow(QWidget *parent)
         child = ui->treeWidget->topLevelItem(i);
         setItemIcon(child);
     }
-
     //设置左侧按钮icon
     ui->searchBtn->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
     ui->searchBtn->setIcon(QIcon(":/res/icons/search.png"));
@@ -89,14 +51,23 @@ MainWindow::MainWindow(QWidget *parent)
     ui->colorBtn->setIcon(QIcon(":/res/icons/color.png"));
     ui->underlineBtn->setIcon(QIcon(":/res/icons/underline.png"));
 
-
     //设置标题栏信号槽
     connect(ui->boldBtn,SIGNAL(clicked()),this,SLOT(boldBtn_clicked()));
     connect(ui->italicBtn,SIGNAL(clicked()),this,SLOT(italicBtn_clicked()));
     connect(ui->underlineBtn,SIGNAL(clicked()),this,SLOT(underlineBtn_clicked()));
     connect(ui->colorBtn,SIGNAL(clicked()),this,SLOT(colorBtn_clicked()));
+    connect(ui->treeWidget,&QTreeWidget::currentItemChanged,this,&MainWindow::currentTreeItemChanged);
 
+}
 
+void MainWindow::currentTreeItemChanged(QTreeWidgetItem *current, QTreeWidgetItem *previous)
+{
+     QString str("aaaaa");
+     std::cout<<str.toStdString()<<std::endl;
+     if(current->childCount()>0)
+     {
+         return;
+     }
 }
 void MainWindow::setItemIcon(QTreeWidgetItem* child)
 {
@@ -122,7 +93,6 @@ void MainWindow::setItemIcon(QTreeWidgetItem* child)
     {
          child->setIcon(0,QIcon(":/res/icons/childnote.png"));
     }
-
 }
 
 void MainWindow::boldBtn_clicked()
