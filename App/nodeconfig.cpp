@@ -11,6 +11,66 @@ struct node_info
     QTreeWidgetItem *widgetitem;
 };
 
+void nodeconfig::updateXml(OperationType type,QTreeWidgetItem *parentNode,QTreeWidgetItem *newNode)
+{
+    QFile file("config/node.xml");
+
+    if(!file.open(QIODevice::ReadOnly))
+    {
+        std::cout<<"open local xml failed";
+        return;
+    }
+    QDomDocument doc;
+    if(!doc.setContent(&file))//从字节数组中解析XML文档，并将其设置为文档的内容
+    {
+        std::cout<<"set doc content form file failed";
+        file.close();
+        return;
+    }
+    file.close();
+    if(type==ADD)
+    {
+        QDomNodeList list = doc.elementsByTagName(parentNode->text(0));
+        auto path=util::treeItemToFullPath(parentNode);
+        for(int i=0;i<list.size();i++)
+        {
+            QDomElement e = list.at(i).toElement();
+            if(e.attribute("path")==path)
+            {
+                QDomElement newDomElement=doc.createElement(newNode->text(0));
+                list.at(i).appendChild(newDomElement);
+                newDomElement.setAttribute("path",util::treeItemToFullPath(newNode));
+                break;
+            }
+        }
+    }
+    else if(type==DELETE)
+    {
+        QDomNodeList list = doc.elementsByTagName(parentNode->text(0));
+        auto path=util::treeItemToFullPath(parentNode);
+        for(int i=0;i<list.size();i++)
+        {
+            QDomElement e = list.at(i).toElement();
+            if(e.attribute("path")==path)
+            {
+                e.parentNode().removeChild(e);
+                break;
+            }
+        }
+    }
+    else if(type==UPDATE)
+    {
+
+    }
+    if(!file.open(QFile::WriteOnly|QFile::Truncate))//重写文件，如果不用truncate就是在后面追加内容，就无效了
+    {
+        return;
+    }
+    QTextStream out_stream(&file);
+    doc.save(out_stream,4);
+    file.close();
+}
+
 void nodeconfig::readnodefile(QTreeWidget *tree_widget)
 {
     //设置输入文件

@@ -1,4 +1,4 @@
-QT       += core gui svg
+QT       += core gui svg xml
 
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
@@ -13,12 +13,14 @@ SOURCES += \
     main.cpp \
     mainwindow.cpp \
     nodeconfig.cpp \
-    svgtextlabel.cpp
+    svgtextlabel.cpp \
+    util.cpp
 
 HEADERS += \
     mainwindow.h \
     nodeconfig.h \
-    svgtextlabel.h
+    svgtextlabel.h \
+    util.h
 
 FORMS += \
     mainwindow.ui \

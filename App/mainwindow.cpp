@@ -1,5 +1,5 @@
 #include "mainwindow.h"
-#include "nodeconfig.h"
+
 #include "ui_mainwindow.h"
 
 
@@ -31,16 +31,10 @@ MainWindow::MainWindow(QWidget *parent)
     ui->treeWidget->setFrameStyle(QFrame::NoFrame);
 
     //通过配置文件，创建node
-    nodeconfig *config =new nodeconfig;
     config->readnodefile(ui->treeWidget);
 
-    int size = ui->treeWidget->topLevelItemCount();
-    QTreeWidgetItem *child;
-    for (int i = 0; i < size; i++)
-    {
-        child = ui->treeWidget->topLevelItem(i);
-        setItemIcon(child);
-    }
+    setAllItemIcon();
+
     //设置左侧按钮icon
     ui->searchBtn->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
     ui->searchBtn->setIcon(QIcon(":/res/icons/search.png"));
@@ -51,13 +45,89 @@ MainWindow::MainWindow(QWidget *parent)
     ui->colorBtn->setIcon(QIcon(":/res/icons/color.png"));
     ui->underlineBtn->setIcon(QIcon(":/res/icons/underline.png"));
 
+    initRightMenu();
+
     //设置标题栏信号槽
     connect(ui->boldBtn,SIGNAL(clicked()),this,SLOT(boldBtn_clicked()));
     connect(ui->italicBtn,SIGNAL(clicked()),this,SLOT(italicBtn_clicked()));
     connect(ui->underlineBtn,SIGNAL(clicked()),this,SLOT(underlineBtn_clicked()));
     connect(ui->colorBtn,SIGNAL(clicked()),this,SLOT(colorBtn_clicked()));
     connect(ui->treeWidget,&QTreeWidget::currentItemChanged,this,&MainWindow::currentTreeItemChanged);
+    connect(ui->treeWidget,&QTreeWidget::itemPressed,this,&MainWindow::right_item_pressed);
+    connect(newNoteAction, SIGNAL(triggered(bool)), this , SLOT(onNewNoteItemClick()));
+    connect(saveNoteAction, SIGNAL(triggered(bool)), this , SLOT(onSaveNoteItemClick()));
+    connect(moveNoteAction, SIGNAL(triggered(bool)), this , SLOT(onMoveNoteItemClick()));
+    connect(lockAction, SIGNAL(triggered(bool)), this , SLOT(onLockItemClick()));
+    connect(deleteNoteAction, SIGNAL(triggered(bool)), this , SLOT(onDeleteNoteItemClick()));
+}
 
+//初始化treewidget 右键菜单
+void MainWindow::initRightMenu()
+{
+    newNoteAction = new QAction("新建笔记", ui->treeWidget);
+    saveNoteAction = new QAction("收藏笔记", ui->treeWidget);
+    moveNoteAction = new QAction("移动笔记", ui->treeWidget);
+    lockAction = new QAction("添加密码锁", ui->treeWidget);
+    deleteNoteAction = new QAction("删除笔记", ui->treeWidget);
+    rightMenu=new QMenu(ui->treeWidget);
+    rightMenu->addAction(newNoteAction);
+    rightMenu->addAction(saveNoteAction);
+    rightMenu->addAction(moveNoteAction);
+    rightMenu->addAction(lockAction);
+    rightMenu->addAction(deleteNoteAction);
+}
+
+//右键菜单，新增笔记本操作
+void MainWindow::onNewNoteItemClick()
+{
+    if(ui->treeWidget->currentItem()==NULL)
+    {
+        return;
+    }
+    QTreeWidgetItem *newItem=new QTreeWidgetItem();
+    newItem->setText(0,"无标题");
+    auto currentNode=ui->treeWidget->currentItem();
+    currentNode->addChild(newItem);
+    config->updateXml(ADD,currentNode,newItem);
+    setAllItemIcon();
+}
+
+//右键菜单，删除笔记本操作
+void MainWindow::onDeleteNoteItemClick()
+{
+    std::cout<<"delete menu"<<std::endl;
+    auto currentNode=ui->treeWidget->currentItem();
+    //此处需要先删除doc，因为updateXml中依赖node结构，不能先删node
+    config->updateXml(DELETE,currentNode,NULL);
+    currentNode->parent()->removeChild(currentNode);
+    setAllItemIcon();
+}
+
+void MainWindow::onSaveNoteItemClick()
+{
+    std::cout<<"save menu"<<std::endl;
+}
+
+void MainWindow::onMoveNoteItemClick()
+{
+    std::cout<<"move menu"<<std::endl;
+}
+
+void MainWindow::onLockItemClick()
+{
+    std::cout<<"lock menu"<<std::endl;
+}
+
+
+
+void MainWindow::right_item_pressed(QTreeWidgetItem *item, int column)
+{
+    if(QGuiApplication::mouseButtons()!= Qt::RightButton)
+    {
+        return;
+    }
+    std::cout<<"right clicked"<<std::endl;
+    rightMenu->exec(QCursor::pos());   //菜单弹出位置为鼠标点击位置
 }
 
 void MainWindow::currentTreeItemChanged(QTreeWidgetItem *current, QTreeWidgetItem *previous)
@@ -69,6 +139,18 @@ void MainWindow::currentTreeItemChanged(QTreeWidgetItem *current, QTreeWidgetIte
          return;
      }
 }
+
+void MainWindow::setAllItemIcon()
+{
+    int size = ui->treeWidget->topLevelItemCount();
+    QTreeWidgetItem *child;
+    for (int i = 0; i < size; i++)
+    {
+        child = ui->treeWidget->topLevelItem(i);
+        setItemIcon(child);
+    }
+}
+
 void MainWindow::setItemIcon(QTreeWidgetItem* child)
 {
     int childCount = child->childCount();
