@@ -95,6 +95,34 @@
         </widget>
        </item>
        <item>
+        <widget class="QToolButton" name="pictureBtn">
+         <property name="text">
+          <string>Picture</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QToolButton" name="saveBtn">
+         <property name="text">
+          <string>Save</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QToolButton" name="undoBtn">
+         <property name="text">
+          <string>Undo</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QToolButton" name="toolButton_4">
+         <property name="text">
+          <string>...</string>
+         </property>
+        </widget>
+       </item>
+       <item>
         <spacer name="titleBarSpacer">
          <property name="orientation">
           <enum>Qt::Horizontal</enum>

@@ -12,8 +12,12 @@
 #include<QStandardItem>
 #include<iostream>
 #include<QMenu>
+#include<QTextDocumentFragment>
+#include<QFileDialog>
+#include<QImageReader>
 #include "nodeconfig.h"
 #include "util.h"
+
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
@@ -43,11 +47,15 @@ private:
     void setAllItemIcon();
     void setItemIcon(QTreeWidgetItem* child_item);
     void initRightMenu();
+    void InsertImageDialog();
 public slots:
     void boldBtn_clicked();
     void italicBtn_clicked();
     void underlineBtn_clicked();
     void colorBtn_clicked();
+    void onPictureBtn_clicked();
+    void onUndoBtn_clicked();
+    void onSaveBtn_clicked();
     void right_item_pressed(QTreeWidgetItem *item, int column);//右键菜单点击
     void currentTreeItemChanged(QTreeWidgetItem *current, QTreeWidgetItem *previous);
 

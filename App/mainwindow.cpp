@@ -52,6 +52,9 @@ MainWindow::MainWindow(QWidget *parent)
     connect(ui->italicBtn,SIGNAL(clicked()),this,SLOT(italicBtn_clicked()));
     connect(ui->underlineBtn,SIGNAL(clicked()),this,SLOT(underlineBtn_clicked()));
     connect(ui->colorBtn,SIGNAL(clicked()),this,SLOT(colorBtn_clicked()));
+    connect(ui->pictureBtn,&QToolButton::clicked,this,&MainWindow::onPictureBtn_clicked);
+    connect(ui->undoBtn,&QToolButton::clicked,this,&MainWindow::onUndoBtn_clicked);
+    connect(ui->saveBtn,&QToolButton::clicked,this,&MainWindow::onSaveBtn_clicked);
     connect(ui->treeWidget,&QTreeWidget::currentItemChanged,this,&MainWindow::currentTreeItemChanged);
     connect(ui->treeWidget,&QTreeWidget::itemPressed,this,&MainWindow::right_item_pressed);
     connect(newNoteAction, SIGNAL(triggered(bool)), this , SLOT(onNewNoteItemClick()));
@@ -59,6 +62,14 @@ MainWindow::MainWindow(QWidget *parent)
     connect(moveNoteAction, SIGNAL(triggered(bool)), this , SLOT(onMoveNoteItemClick()));
     connect(lockAction, SIGNAL(triggered(bool)), this , SLOT(onLockItemClick()));
     connect(deleteNoteAction, SIGNAL(triggered(bool)), this , SLOT(onDeleteNoteItemClick()));
+
+    // QTextEdit *textEditor = new QTextEdit(0);
+    //QTextDocumentFragment fragment;
+   // fragment = QTextDocumentFragment::fromHtml("<img src='/Users/wuchengcheng/pictures/wallhaven-5wppe8.jpg'>");
+  //  ui->textEdit->textCursor().insertFragment(fragment);
+    // ui->textEdit->setVisible(true);
+
+
 }
 
 //初始化treewidget 右键菜单
@@ -130,14 +141,51 @@ void MainWindow::right_item_pressed(QTreeWidgetItem *item, int column)
     rightMenu->exec(QCursor::pos());   //菜单弹出位置为鼠标点击位置
 }
 
+//切换左侧节点时，保存上一个节点的内容，加载当前节点的内容
 void MainWindow::currentTreeItemChanged(QTreeWidgetItem *current, QTreeWidgetItem *previous)
 {
-     QString str("aaaaa");
-     std::cout<<str.toStdString()<<std::endl;
-     if(current->childCount()>0)
-     {
-         return;
-     }
+    auto currentPath= QCoreApplication::applicationDirPath();
+    //保存上一个节点的内容
+    if(previous!=NULL&&previous->childCount()==0)
+    {
+        QString previousNodePath=util::treeItemToFullPath(previous);
+        auto previewFullPath= QString("%1/storage/%2.html").arg(currentPath,previousNodePath); //如d:/sotrage/xxx.html
+        //解析出路径（不含文件名）和文件名
+        int first = previewFullPath.lastIndexOf ("/");
+        QString dirPath = previewFullPath.left (first); //文件夹路径
+
+        //如果路径不存在，则创建
+        QDir* dir = new QDir();
+        if(!dir->exists(dirPath)){
+            dir->mkpath(dirPath);
+        }
+
+        //创建一个输出文件的文档
+        QFile  myfile(previewFullPath);
+        //注意WriteOnly是往文本中写入的时候用，ReadOnly是在读文本中内容的时候用，Truncate表示将原来文件中的内容清空
+        if (myfile.open(QFile::WriteOnly|QFile::Truncate))
+        {
+            QTextStream out(&myfile);
+            out<<ui->textEdit->toHtml()<<Qt::endl;
+            myfile.close();
+        }
+    }
+    if(current==NULL||current->childCount()>0)
+    {
+        return;
+    }
+    //加载当前节点的内容
+    QString nodePath=util::treeItemToFullPath(current);
+    auto fullPath= QString("%1/storage/%2.html").arg(currentPath,nodePath); //如d:/sotrage/xxx.html
+    QFile file(fullPath);
+    if(!file.open(QIODevice::ReadOnly | QIODevice::Text))
+    {
+        return;
+    }
+    QByteArray allArray = file.readAll();
+    QString allStr = QString(allArray);
+    file.close();
+    ui->textEdit->setHtml(allStr);
 }
 
 void MainWindow::setAllItemIcon()
@@ -193,9 +241,11 @@ void MainWindow::boldBtn_clicked()
 
 void MainWindow::italicBtn_clicked()
 {
+    //InsertImageDialog();
     QTextCharFormat fmt;
     fmt.setFontItalic(ui->italicBtn->isChecked());
     ui->textEdit->mergeCurrentCharFormat(fmt);
+
 }
 void MainWindow::underlineBtn_clicked()
 {
@@ -213,6 +263,72 @@ void MainWindow::colorBtn_clicked()
         fmt.setForeground(color);
         ui->textEdit->mergeCurrentCharFormat(fmt);
     }
+}
+
+void MainWindow::onPictureBtn_clicked()
+{
+    InsertImageDialog();
+}
+
+void MainWindow::onUndoBtn_clicked()
+{
+
+}
+
+void MainWindow::onSaveBtn_clicked()
+{
+    if(ui->treeWidget->selectedItems().length()==0)
+    {
+        return;
+    }
+    if(ui->treeWidget->currentItem()->childCount()>0)
+    {
+        return;
+    }
+    auto currentPath= QCoreApplication::applicationDirPath();
+    QString nodePath=util::treeItemToFullPath(ui->treeWidget->currentItem());
+
+
+    auto fullPath= QString("%1/storage/%2.html").arg(currentPath,nodePath); //如d:/sotrage/xxx.html
+    //解析出路径（不含文件名）和文件名
+    int first = fullPath.lastIndexOf ("/");
+    QString fileName = fullPath.right(fullPath.length ()-first-1); //xxxx.html
+    QString dirPath = fullPath.left (first); //文件夹路径
+
+    //如果路径不存在，则创建
+    QDir* dir = new QDir();
+    if(!dir->exists(dirPath)){
+        dir->mkpath(dirPath);
+    }
+
+    //创建一个输出文件的文档
+    QFile  myfile(fullPath);
+    //注意WriteOnly是往文本中写入的时候用，ReadOnly是在读文本中内容的时候用，Truncate表示将原来文件中的内容清空
+    if (myfile.open(QFile::WriteOnly|QFile::Truncate))
+    {
+        QTextStream out(&myfile);
+        out<<ui->textEdit->toHtml()<<Qt::endl;
+    }
+}
+
+void MainWindow::InsertImageDialog()
+{
+    QString file = QFileDialog::getOpenFileName(this, tr("Select an image"),
+                                                ".", tr("Bitmap Files (*.bmp)\n"
+                                                        "JPEG (*.jpg *jpeg)\n"
+                                                        "GIF (*.gif)\n"
+                                                        "PNG (*.png)\n"));
+    QUrl Uri ( QString ( "file://%1" ).arg ( file ) );
+    QImage image = QImageReader ( file ).read();
+
+    QTextDocument * textDocument = ui->textEdit->document();
+    textDocument->addResource( QTextDocument::ImageResource, Uri, QVariant ( image ) );
+    QTextCursor cursor = ui->textEdit->textCursor();
+    QTextImageFormat imageFormat;
+    imageFormat.setWidth( image.width() );
+    imageFormat.setHeight( image.height() );
+    imageFormat.setName( Uri.toString() );
+    cursor.insertImage(imageFormat);
 }
 
 MainWindow::~MainWindow()

@@ -5,7 +5,7 @@ util::util()
 
 }
 
-
+//获取节点的路径
 QString util::treeItemToFullPath(QTreeWidgetItem* treeItem)
 {
     QString fullPath= treeItem->text(0);
