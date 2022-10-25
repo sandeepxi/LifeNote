@@ -108,10 +108,14 @@ void MainWindow::onDeleteNoteItemClick()
 {
     std::cout<<"delete menu"<<std::endl;
     auto currentNode=ui->treeWidget->currentItem();
+    //移动本地存储文件到回收站
+
     //此处需要先删除doc，因为updateXml中依赖node结构，不能先删node
     config->updateXml(DELETE,currentNode,NULL);
     currentNode->parent()->removeChild(currentNode);
     setAllItemIcon();
+
+
 }
 
 void MainWindow::onSaveNoteItemClick()
