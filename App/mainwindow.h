@@ -42,12 +42,14 @@ private:
     QAction * moveNoteAction;
     QAction * lockAction;
     nodeconfig *config ;
+    QTreeWidgetItem *recycleNode; //回收站顶级节点，构造函数给其赋值
 
     QMenu *rightMenu;
     void setAllItemIcon();
     void setItemIcon(QTreeWidgetItem* child_item);
     void initRightMenu();
     void InsertImageDialog();
+    void initRecycleNode();
 public slots:
     void boldBtn_clicked();
     void italicBtn_clicked();

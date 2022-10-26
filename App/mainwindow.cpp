@@ -34,7 +34,7 @@ MainWindow::MainWindow(QWidget *parent)
     config->readnodefile(ui->treeWidget);
 
     setAllItemIcon();
-
+    initRecycleNode();
     //设置左侧按钮icon
     ui->searchBtn->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
     ui->searchBtn->setIcon(QIcon(":/res/icons/search.png"));
@@ -62,14 +62,6 @@ MainWindow::MainWindow(QWidget *parent)
     connect(moveNoteAction, SIGNAL(triggered(bool)), this , SLOT(onMoveNoteItemClick()));
     connect(lockAction, SIGNAL(triggered(bool)), this , SLOT(onLockItemClick()));
     connect(deleteNoteAction, SIGNAL(triggered(bool)), this , SLOT(onDeleteNoteItemClick()));
-
-    // QTextEdit *textEditor = new QTextEdit(0);
-    //QTextDocumentFragment fragment;
-   // fragment = QTextDocumentFragment::fromHtml("<img src='/Users/wuchengcheng/pictures/wallhaven-5wppe8.jpg'>");
-  //  ui->textEdit->textCursor().insertFragment(fragment);
-    // ui->textEdit->setVisible(true);
-
-
 }
 
 //初始化treewidget 右键菜单
@@ -100,22 +92,41 @@ void MainWindow::onNewNoteItemClick()
     auto currentNode=ui->treeWidget->currentItem();
     currentNode->addChild(newItem);
     config->updateXml(ADD,currentNode,newItem);
+    //新增本地文件html
+    QString path=util::treeItemToNodePath(newItem);
+
     setAllItemIcon();
 }
+
+//question：
+//父节点变成子节点后，可以编辑内容，但是一新增内容又变成了父节点，内容丢失，这里需要改下
 
 //右键菜单，删除笔记本操作
 void MainWindow::onDeleteNoteItemClick()
 {
+    //若是回收站的数据
+
+    //若是非回收站的数据
     std::cout<<"delete menu"<<std::endl;
     auto currentNode=ui->treeWidget->currentItem();
+    if(currentNode->childCount()>0)
+    {
+        QMessageBox::warning(this, tr("警告"),tr("\n无法批量删除,请选中单个笔记进行删除!"),QMessageBox::Ok);
+        return;
+    }
     //移动本地存储文件到回收站
+    auto currentPath= QCoreApplication::applicationDirPath();
+    auto fullPath= util::treeItemToFullFilePath(currentNode); //如d:/sotrage/xxx.html
+    QString fileName = util::treeItemToFileName(currentNode); //文件名称，如xxx.html
+    auto recyclePath=QString("%1/storage/回收站/%2").arg(currentPath,fileName);
+    bool moveResult= QFile::rename(fullPath,recyclePath); //A路径移动到B路径
+    std::cout<<"delete node and move file "<<(moveResult ? "true": "false")  <<std::endl;
 
     //此处需要先删除doc，因为updateXml中依赖node结构，不能先删node
     config->updateXml(DELETE,currentNode,NULL);
     currentNode->parent()->removeChild(currentNode);
+    recycleNode->addChild(currentNode);
     setAllItemIcon();
-
-
 }
 
 void MainWindow::onSaveNoteItemClick()
@@ -152,8 +163,7 @@ void MainWindow::currentTreeItemChanged(QTreeWidgetItem *current, QTreeWidgetIte
     //保存上一个节点的内容
     if(previous!=NULL&&previous->childCount()==0)
     {
-        QString previousNodePath=util::treeItemToFullPath(previous);
-        auto previewFullPath= QString("%1/storage/%2.html").arg(currentPath,previousNodePath); //如d:/sotrage/xxx.html
+        auto previewFullPath=util::treeItemToFullFilePath(previous); //如d:/sotrage/xxx.html
         //解析出路径（不含文件名）和文件名
         int first = previewFullPath.lastIndexOf ("/");
         QString dirPath = previewFullPath.left (first); //文件夹路径
@@ -179,8 +189,7 @@ void MainWindow::currentTreeItemChanged(QTreeWidgetItem *current, QTreeWidgetIte
         return;
     }
     //加载当前节点的内容
-    QString nodePath=util::treeItemToFullPath(current);
-    auto fullPath= QString("%1/storage/%2.html").arg(currentPath,nodePath); //如d:/sotrage/xxx.html
+    auto fullPath=util::treeItemToFullFilePath(current);
     QFile file(fullPath);
     if(!file.open(QIODevice::ReadOnly | QIODevice::Text))
     {
@@ -192,6 +201,23 @@ void MainWindow::currentTreeItemChanged(QTreeWidgetItem *current, QTreeWidgetIte
     ui->textEdit->setHtml(allStr);
 }
 
+//给回收站node赋值
+void MainWindow::initRecycleNode()
+{
+    int size = ui->treeWidget->topLevelItemCount();
+    QTreeWidgetItem *child;
+    for (int i = 0; i < size; i++)
+    {
+        child = ui->treeWidget->topLevelItem(i);
+        if(child->text(0)=="回收站")
+        {
+            recycleNode=child;
+            break;
+        }
+    }
+}
+
+//设置所有node的icon
 void MainWindow::setAllItemIcon()
 {
     int size = ui->treeWidget->topLevelItemCount();
@@ -289,11 +315,7 @@ void MainWindow::onSaveBtn_clicked()
     {
         return;
     }
-    auto currentPath= QCoreApplication::applicationDirPath();
-    QString nodePath=util::treeItemToFullPath(ui->treeWidget->currentItem());
-
-
-    auto fullPath= QString("%1/storage/%2.html").arg(currentPath,nodePath); //如d:/sotrage/xxx.html
+    QString fullPath=util::treeItemToFullFilePath(ui->treeWidget->currentItem());
     //解析出路径（不含文件名）和文件名
     int first = fullPath.lastIndexOf ("/");
     QString fileName = fullPath.right(fullPath.length ()-first-1); //xxxx.html

@@ -11,6 +11,7 @@ struct node_info
     QTreeWidgetItem *widgetitem;
 };
 
+//根据右键菜单操作类型，更新本地config/node.xml
 void nodeconfig::updateXml(OperationType type,QTreeWidgetItem *parentNode,QTreeWidgetItem *newNode)
 {
     QFile file("config/node.xml");
@@ -31,7 +32,7 @@ void nodeconfig::updateXml(OperationType type,QTreeWidgetItem *parentNode,QTreeW
     if(type==ADD)
     {
         QDomNodeList list = doc.elementsByTagName(parentNode->text(0));
-        auto path=util::treeItemToFullPath(parentNode);
+        auto path=util::treeItemToNodePath(parentNode);
         for(int i=0;i<list.size();i++)
         {
             QDomElement e = list.at(i).toElement();
@@ -39,7 +40,7 @@ void nodeconfig::updateXml(OperationType type,QTreeWidgetItem *parentNode,QTreeW
             {
                 QDomElement newDomElement=doc.createElement(newNode->text(0));
                 list.at(i).appendChild(newDomElement);
-                newDomElement.setAttribute("path",util::treeItemToFullPath(newNode));
+                newDomElement.setAttribute("path",util::treeItemToNodePath(newNode));
                 break;
             }
         }
@@ -47,7 +48,7 @@ void nodeconfig::updateXml(OperationType type,QTreeWidgetItem *parentNode,QTreeW
     else if(type==DELETE)
     {
         QDomNodeList list = doc.elementsByTagName(parentNode->text(0));
-        auto path=util::treeItemToFullPath(parentNode);
+        auto path=util::treeItemToFullFilePath(parentNode);
         for(int i=0;i<list.size();i++)
         {
             QDomElement e = list.at(i).toElement();
