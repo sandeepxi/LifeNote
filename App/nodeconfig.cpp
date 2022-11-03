@@ -48,7 +48,7 @@ void nodeconfig::updateXml(OperationType type,QTreeWidgetItem *parentNode,QTreeW
     else if(type==DELETE)
     {
         QDomNodeList list = doc.elementsByTagName(parentNode->text(0));
-        auto path=util::treeItemToFullFilePath(parentNode);
+        auto path=util::treeItemToNodePath(parentNode);
         for(int i=0;i<list.size();i++)
         {
             QDomElement e = list.at(i).toElement();

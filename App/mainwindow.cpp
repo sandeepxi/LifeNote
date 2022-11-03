@@ -88,13 +88,25 @@ void MainWindow::onNewNoteItemClick()
         return;
     }
     QTreeWidgetItem *newItem=new QTreeWidgetItem();
-    newItem->setText(0,"无标题");
+    QString newNodeName=util::NoRepeatNodeName(ui->treeWidget->currentItem());
+    newItem->setText(0,newNodeName);
     auto currentNode=ui->treeWidget->currentItem();
     currentNode->addChild(newItem);
     config->updateXml(ADD,currentNode,newItem);
     //新增本地文件html
-    QString path=util::treeItemToNodePath(newItem);
-
+    QString dirpath=util::treeItemToNodeDirPath(newItem);
+    QDir* dir = new QDir();
+    if(!dir->exists(dirpath)){
+        dir->mkpath(dirpath);
+    }
+    //创建本地空文档html
+    QString filePath=util::treeItemToFullFilePath(newItem);
+    QFile  myfile(filePath);
+    //注意WriteOnly是往文本中写入的时候用，ReadOnly是在读文本中内容的时候用，Truncate表示将原来文件中的内容清空
+    if (myfile.open(QFile::WriteOnly))
+    {
+        myfile.close();
+    }
     setAllItemIcon();
 }
 
