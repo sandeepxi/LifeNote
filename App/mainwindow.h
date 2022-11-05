@@ -16,6 +16,7 @@
 #include<QFileDialog>
 #include<QImageReader>
 #include "nodeconfig.h"
+#include "extraqtreewidgetitem.h"
 #include "util.h"
 
 

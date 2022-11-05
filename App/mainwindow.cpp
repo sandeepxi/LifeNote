@@ -87,7 +87,7 @@ void MainWindow::onNewNoteItemClick()
     {
         return;
     }
-    QTreeWidgetItem *newItem=new QTreeWidgetItem();
+    QTreeWidgetItem *newItem=new ExtraQTreeWidgetItem();
     QString newNodeName=util::NoRepeatNodeName(ui->treeWidget->currentItem());
     newItem->setText(0,newNodeName);
     auto currentNode=ui->treeWidget->currentItem();
@@ -116,28 +116,41 @@ void MainWindow::onNewNoteItemClick()
 //右键菜单，删除笔记本操作
 void MainWindow::onDeleteNoteItemClick()
 {
-    //若是回收站的数据
-
-    //若是非回收站的数据
-    std::cout<<"delete menu"<<std::endl;
     auto currentNode=ui->treeWidget->currentItem();
-    if(currentNode->childCount()>0)
-    {
-        QMessageBox::warning(this, tr("警告"),tr("\n无法批量删除,请选中单个笔记进行删除!"),QMessageBox::Ok);
-        return;
-    }
-    //移动本地存储文件到回收站
     auto currentPath= QCoreApplication::applicationDirPath();
     auto fullPath= util::treeItemToFullFilePath(currentNode); //如d:/sotrage/xxx.html
-    QString fileName = util::treeItemToFileName(currentNode); //文件名称，如xxx.html
-    auto recyclePath=QString("%1/storage/回收站/%2").arg(currentPath,fileName);
-    bool moveResult= QFile::rename(fullPath,recyclePath); //A路径移动到B路径
-    std::cout<<"delete node and move file "<<(moveResult ? "true": "false")  <<std::endl;
-
+    bool isRecycle=currentNode->parent()->text(0)=="回收站"; //is recycle Node
+    //if is recycleNode's child node ,delete directly
+    if(isRecycle)
+    {
+        QFile file(fullPath);
+        file.remove();
+    }
+    else
+    {
+        //若是非回收站的数据
+        std::cout<<"delete menu"<<std::endl;
+        if(currentNode->childCount()>0)
+        {
+            QMessageBox::warning(this, tr("警告"),tr("\n无法批量删除,请选中单个笔记进行删除!"),QMessageBox::Ok);
+            return;
+        }
+        //移动本地存储文件到回收站
+        QString fileName = util::treeItemToFileName(currentNode); //文件名称，如xxx.html
+        auto recyclePath=QString("%1/storage/回收站/%2").arg(currentPath,fileName);
+        bool moveResult= QFile::rename(fullPath,recyclePath); //A路径移动到B路径
+        std::cout<<"delete node and move file "<<(moveResult ? "true": "false")  <<std::endl;
+    }
     //此处需要先删除doc，因为updateXml中依赖node结构，不能先删node
     config->updateXml(DELETE,currentNode,NULL);
-    currentNode->parent()->removeChild(currentNode);
-    recycleNode->addChild(currentNode);
+    ExtraQTreeWidgetItem* extraCurrentNode= dynamic_cast<ExtraQTreeWidgetItem*>(currentNode);
+    extraCurrentNode->deleteType=1;
+    currentNode->parent()->removeChild(extraCurrentNode);//this line will trigger currentTreeItemChanged immediately
+    extraCurrentNode->deleteType=0;
+    if(!isRecycle) //if parentNode is recycle,not need to add
+    {
+       recycleNode->addChild(extraCurrentNode);
+    }
     setAllItemIcon();
 }
 
@@ -171,9 +184,14 @@ void MainWindow::right_item_pressed(QTreeWidgetItem *item, int column)
 //切换左侧节点时，保存上一个节点的内容，加载当前节点的内容
 void MainWindow::currentTreeItemChanged(QTreeWidgetItem *current, QTreeWidgetItem *previous)
 {
-    auto currentPath= QCoreApplication::applicationDirPath();
-    //保存上一个节点的内容
-    if(previous!=NULL&&previous->childCount()==0)
+    std::cout<<"currentTreeItemChanged tirggerd"<<std::endl;
+    ExtraQTreeWidgetItem* extraPreviousNode= dynamic_cast<ExtraQTreeWidgetItem*>(previous);
+
+    //save previous node content to local file
+    //when delete node,the focus will be changed,and this function will be trigger.
+    //so when the previous node is deleted, it's deletetype is 1 , don't save the previous node content.
+    //otherwise, delete node, the local file will be create again.
+    if(previous!=NULL&& extraPreviousNode->deleteType==0&&previous->childCount()==0)
     {
         auto previewFullPath=util::treeItemToFullFilePath(previous); //如d:/sotrage/xxx.html
         //解析出路径（不含文件名）和文件名
@@ -193,8 +211,8 @@ void MainWindow::currentTreeItemChanged(QTreeWidgetItem *current, QTreeWidgetIte
         {
             QTextStream out(&myfile);
             out<<ui->textEdit->toHtml()<<Qt::endl;
-            myfile.close();
         }
+        myfile.close();
     }
     if(current==NULL||current->childCount()>0)
     {

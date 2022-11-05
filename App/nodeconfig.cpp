@@ -1,4 +1,5 @@
 #include "nodeconfig.h"
+#include "extraqtreewidgetitem.h"
 
 nodeconfig::nodeconfig()
 {
@@ -100,7 +101,7 @@ void nodeconfig::readnodefile(QTreeWidget *tree_widget)
                 node_info *node = new node_info();
                 node->isclose=false;
                 node->node_name=reader.name().toString();
-                node->widgetitem=new QTreeWidgetItem();
+                node->widgetitem=new ExtraQTreeWidgetItem();
                 if( node->node_name=="root")
                 {
                     continue;
