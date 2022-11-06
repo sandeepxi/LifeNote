@@ -38,6 +38,7 @@ public:
 private:
     Ui::MainWindow *ui;
     QAction * newNoteAction;
+    QAction * newNoteGroupAction;
     QAction * deleteNoteAction;
     QAction * saveNoteAction;
     QAction * moveNoteAction;
@@ -47,7 +48,7 @@ private:
 
     QMenu *rightMenu;
     void setAllItemIcon();
-    void setItemIcon(QTreeWidgetItem* child_item);
+    void setItemIcon(ExtraQTreeWidgetItem* child_item);
     void initRightMenu();
     void InsertImageDialog();
     void initRecycleNode();
@@ -63,6 +64,7 @@ public slots:
     void currentTreeItemChanged(QTreeWidgetItem *current, QTreeWidgetItem *previous);
 
     void onNewNoteItemClick();
+    void onNewNoteGroupItemClick();
     void onSaveNoteItemClick();
     void onMoveNoteItemClick();
     void onLockItemClick();

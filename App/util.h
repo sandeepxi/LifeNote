@@ -6,10 +6,13 @@
 #include <QCoreApplication>
 enum OperationType
 {
-   ADD,
-   DELETE,
-   UPDATE,
+   AddNode,
+   AddNodeGroup,
+   DeleteNode,
+   MoveNode,
 };
+
+
 class util
 {
 public:

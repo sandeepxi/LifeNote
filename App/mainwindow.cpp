@@ -31,7 +31,7 @@ MainWindow::MainWindow(QWidget *parent)
     ui->treeWidget->setFrameStyle(QFrame::NoFrame);
 
     //通过配置文件，创建node
-    config->readnodefile(ui->treeWidget);
+    config->readNodeConfigXML(ui->treeWidget);
 
     setAllItemIcon();
     initRecycleNode();
@@ -58,6 +58,7 @@ MainWindow::MainWindow(QWidget *parent)
     connect(ui->treeWidget,&QTreeWidget::currentItemChanged,this,&MainWindow::currentTreeItemChanged);
     connect(ui->treeWidget,&QTreeWidget::itemPressed,this,&MainWindow::right_item_pressed);
     connect(newNoteAction, SIGNAL(triggered(bool)), this , SLOT(onNewNoteItemClick()));
+    connect(newNoteGroupAction, SIGNAL(triggered(bool)), this , SLOT(onNewNoteGroupItemClick()));
     connect(saveNoteAction, SIGNAL(triggered(bool)), this , SLOT(onSaveNoteItemClick()));
     connect(moveNoteAction, SIGNAL(triggered(bool)), this , SLOT(onMoveNoteItemClick()));
     connect(lockAction, SIGNAL(triggered(bool)), this , SLOT(onLockItemClick()));
@@ -68,31 +69,55 @@ MainWindow::MainWindow(QWidget *parent)
 void MainWindow::initRightMenu()
 {
     newNoteAction = new QAction("新建笔记", ui->treeWidget);
+    newNoteGroupAction = new QAction("新建笔记本", ui->treeWidget);
     saveNoteAction = new QAction("收藏笔记", ui->treeWidget);
     moveNoteAction = new QAction("移动笔记", ui->treeWidget);
     lockAction = new QAction("添加密码锁", ui->treeWidget);
     deleteNoteAction = new QAction("删除笔记", ui->treeWidget);
     rightMenu=new QMenu(ui->treeWidget);
     rightMenu->addAction(newNoteAction);
+    rightMenu->addAction(newNoteGroupAction);
     rightMenu->addAction(saveNoteAction);
     rightMenu->addAction(moveNoteAction);
     rightMenu->addAction(lockAction);
     rightMenu->addAction(deleteNoteAction);
 }
 
-//右键菜单，新增笔记本操作
+//right click Menu, new NoteGroup
+void MainWindow::onNewNoteGroupItemClick()
+{
+    if(ui->treeWidget->currentItem()==NULL)
+    {
+        return;
+    }
+    QTreeWidgetItem *newItem=new ExtraQTreeWidgetItem(ExtraQTreeWidgetItem::NodeParent);
+    QString newNodeGroupName=util::NoRepeatNodeName(ui->treeWidget->currentItem());
+    newItem->setText(0,newNodeGroupName);
+    auto currentNode=ui->treeWidget->currentItem();
+    currentNode->addChild(newItem);
+    config->updateXml(AddNodeGroup,currentNode,newItem);
+    //新增本地文件夹
+    QString dirpath=util::treeItemToNodeDirPath(newItem);
+    QDir* dir = new QDir();
+    if(!dir->exists(dirpath)){
+        dir->mkpath(dirpath);
+    }
+    setAllItemIcon();
+}
+
+//right click Menu ,new note
 void MainWindow::onNewNoteItemClick()
 {
     if(ui->treeWidget->currentItem()==NULL)
     {
         return;
     }
-    QTreeWidgetItem *newItem=new ExtraQTreeWidgetItem();
+    QTreeWidgetItem *newItem=new ExtraQTreeWidgetItem(ExtraQTreeWidgetItem::NodeChild);
     QString newNodeName=util::NoRepeatNodeName(ui->treeWidget->currentItem());
     newItem->setText(0,newNodeName);
     auto currentNode=ui->treeWidget->currentItem();
     currentNode->addChild(newItem);
-    config->updateXml(ADD,currentNode,newItem);
+    config->updateXml(AddNode,currentNode,newItem);
     //新增本地文件html
     QString dirpath=util::treeItemToNodeDirPath(newItem);
     QDir* dir = new QDir();
@@ -116,7 +141,7 @@ void MainWindow::onNewNoteItemClick()
 //右键菜单，删除笔记本操作
 void MainWindow::onDeleteNoteItemClick()
 {
-    auto currentNode=ui->treeWidget->currentItem();
+    ExtraQTreeWidgetItem* currentNode=dynamic_cast<ExtraQTreeWidgetItem*>(ui->treeWidget->currentItem());
     auto currentPath= QCoreApplication::applicationDirPath();
     auto fullPath= util::treeItemToFullFilePath(currentNode); //如d:/sotrage/xxx.html
     bool isRecycle=currentNode->parent()->text(0)=="回收站"; //is recycle Node
@@ -135,21 +160,24 @@ void MainWindow::onDeleteNoteItemClick()
             QMessageBox::warning(this, tr("警告"),tr("\n无法批量删除,请选中单个笔记进行删除!"),QMessageBox::Ok);
             return;
         }
-        //移动本地存储文件到回收站
-        QString fileName = util::treeItemToFileName(currentNode); //文件名称，如xxx.html
-        auto recyclePath=QString("%1/storage/回收站/%2").arg(currentPath,fileName);
-        bool moveResult= QFile::rename(fullPath,recyclePath); //A路径移动到B路径
-        std::cout<<"delete node and move file "<<(moveResult ? "true": "false")  <<std::endl;
+        if(currentNode->nodeType==ExtraQTreeWidgetItem::NodeChild)
+        {
+            //移动本地存储文件到回收站
+            QString fileName = util::treeItemToFileName(currentNode); //文件名称，如xxx.html
+            auto recyclePath=QString("%1/storage/回收站/%2").arg(currentPath,fileName);
+            bool moveResult= QFile::rename(fullPath,recyclePath); //A路径移动到B路径
+            std::cout<<"delete node and move file "<<(moveResult ? "true": "false")  <<std::endl;
+        }
     }
     //delete doc(updateXml) must be ahead of the QTreeWidget'Node delete
     //because updateXml function is depend on the Node struct
     if(isRecycle)
     {
-        config->updateXml(DELETE,currentNode);
+        config->updateXml(DeleteNode,currentNode);
     }
     else
     {
-        config->updateXml(UPDATE,currentNode,recycleNode);
+        config->updateXml(MoveNode,currentNode,recycleNode);
     }
     ExtraQTreeWidgetItem* extraCurrentNode= dynamic_cast<ExtraQTreeWidgetItem*>(currentNode);
     extraCurrentNode->deleteType=1;
@@ -263,20 +291,20 @@ void MainWindow::setAllItemIcon()
     for (int i = 0; i < size; i++)
     {
         child = ui->treeWidget->topLevelItem(i);
-        setItemIcon(child);
+        setItemIcon(dynamic_cast<ExtraQTreeWidgetItem*>(child));
     }
 }
 
-void MainWindow::setItemIcon(QTreeWidgetItem* child)
+void MainWindow::setItemIcon(ExtraQTreeWidgetItem* child)
 {
     int childCount = child->childCount();
-    if(childCount>0)
+    if(childCount>0||child->nodeType==ExtraQTreeWidgetItem::NodeParent)
     {
          child->setIcon(0,QIcon(":/res/icons/parentnote.png"));
          for (int j = 0; j < childCount; ++j)
          {
-             QTreeWidgetItem * grandson = child->child(j);
-             if(grandson->childCount()>0)
+             ExtraQTreeWidgetItem * grandson = dynamic_cast<ExtraQTreeWidgetItem*>(child->child(j));
+             if(grandson->childCount()>0||grandson->nodeType==ExtraQTreeWidgetItem::NodeParent)
              {
                  grandson->setIcon(0,QIcon(":/res/icons/parentnote.png"));
                  setItemIcon(grandson);

@@ -1,6 +1,6 @@
 #include "extraqtreewidgetitem.h"
 
-ExtraQTreeWidgetItem::ExtraQTreeWidgetItem()
+ExtraQTreeWidgetItem::ExtraQTreeWidgetItem(NodeType type)
 {
-
+   nodeType=type;
 }

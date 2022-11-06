@@ -8,11 +8,9 @@ nodeconfig::nodeconfig()
 struct node_info
 {
     QString node_name;
-    bool isclose;
-    QTreeWidgetItem *widgetitem;
+    ExtraQTreeWidgetItem *widgetitem;
 };
 
-//根据右键菜单操作类型，更新本地config/node.xml
 //currentNode is The node that is being operated
 //newNode is the Node in the Add  OperationType and UPDATE
 void nodeconfig::updateXml(OperationType type,QTreeWidgetItem *currentNode,QTreeWidgetItem *newNode)
@@ -32,7 +30,7 @@ void nodeconfig::updateXml(OperationType type,QTreeWidgetItem *currentNode,QTree
         return;
     }
     file.close();
-    if(type==ADD)
+    if(type==AddNode)
     {
         QDomNodeList list = doc.elementsByTagName(currentNode->text(0));
         auto path=util::treeItemToNodePath(currentNode);
@@ -44,11 +42,29 @@ void nodeconfig::updateXml(OperationType type,QTreeWidgetItem *currentNode,QTree
                 QDomElement newDomElement=doc.createElement(newNode->text(0));
                 list.at(i).appendChild(newDomElement);
                 newDomElement.setAttribute("path",util::treeItemToNodePath(newNode));
+                newDomElement.setAttribute("nodetype","0");
                 break;
             }
         }
     }
-    else if(type==DELETE)
+    else if(type==AddNodeGroup)
+    {
+        QDomNodeList list = doc.elementsByTagName(currentNode->text(0));
+        auto path=util::treeItemToNodePath(currentNode);
+        for(int i=0;i<list.size();i++)
+        {
+            QDomElement e = list.at(i).toElement();
+            if(e.attribute("path")==path)
+            {
+                QDomElement newDomElement=doc.createElement(newNode->text(0));
+                list.at(i).appendChild(newDomElement);
+                newDomElement.setAttribute("path",util::treeItemToNodePath(newNode));
+                newDomElement.setAttribute("nodetype","1");
+                break;
+            }
+        }
+    }
+    else if(type==DeleteNode)
     {
         QDomNodeList list = doc.elementsByTagName(currentNode->text(0));
         auto path=util::treeItemToNodePath(currentNode);
@@ -62,7 +78,7 @@ void nodeconfig::updateXml(OperationType type,QTreeWidgetItem *currentNode,QTree
             }
         }
     }
-    else if(type==UPDATE)
+    else if(type==MoveNode)
     {
         QDomNodeList list = doc.elementsByTagName(currentNode->text(0));
         auto path=util::treeItemToNodePath(currentNode);
@@ -98,7 +114,9 @@ void nodeconfig::updateXml(OperationType type,QTreeWidgetItem *currentNode,QTree
     file.close();
 }
 
-void nodeconfig::readnodefile(QTreeWidget *tree_widget)
+//XML struct is seem like qtreeWidget ,is a tree
+//The node is added to the treewidget by loop the xml document
+void nodeconfig::readNodeConfigXML(QTreeWidget *tree_widget)
 {
     //设置输入文件
     QFile inputfile("config/node.xml");
@@ -124,9 +142,19 @@ void nodeconfig::readnodefile(QTreeWidget *tree_widget)
             if(!reader.name().toString().isEmpty())
             {
                 node_info *node = new node_info();
-                node->isclose=false;
                 node->node_name=reader.name().toString();
-                node->widgetitem=new ExtraQTreeWidgetItem();
+                ExtraQTreeWidgetItem::NodeType isParent=ExtraQTreeWidgetItem::NodeChild;
+                foreach (const QXmlStreamAttribute & attribute, reader.attributes())
+                {
+                    qDebug()<<attribute.name();
+                    qDebug()<<attribute.value();
+                    if(attribute.name().toString()=="nodetype")
+                    {
+                        isParent= attribute.value().toString()=="0"?ExtraQTreeWidgetItem::NodeChild:ExtraQTreeWidgetItem::NodeParent;
+                        break;
+                    }
+                }
+                node->widgetitem=new ExtraQTreeWidgetItem(isParent);
                 if( node->node_name=="root")
                 {
                     continue;
@@ -149,16 +177,19 @@ void nodeconfig::readnodefile(QTreeWidget *tree_widget)
             {
                 continue;
             }
-            if(vector_node.capacity()>0)
+            if(vector_node.size()>0)
             {
-                vector_node.pop_back();//删掉最后一个
+                //delete last node of vector，then we can always get the parent through previousNode
+                vector_node.pop_back();
             }
             break;
         case QXmlStreamReader::Characters:
-
-
-            break;
-        default:
+//            if(vector_node.size()>0)
+//            {
+//                QString type= reader.text().toString();
+//                auto lastNode=vector_node.at(vector_node.size()-1);
+//                lastNode->widgetitem->nodeType= type=="0"?ExtraQTreeWidgetItem::NodeChild:ExtraQTreeWidgetItem::NodeParent;
+//            }
             break;
         }
     }
@@ -175,82 +206,4 @@ void nodeconfig::readnodefile(QTreeWidget *tree_widget)
     return;
 }
 
-void nodeconfig::readnodefiletest()
-{
-    //设置输入文件
-    QFile inputfile("config/node1.xml");
-    qDebug()<<QDir::currentPath();
-    if(!inputfile.open(QIODevice::ReadOnly))
-    {
-        qDebug() << "Open input file failed";
-        return ;
-    }
-    QXmlStreamReader reader(&inputfile);
 
-    //设置输出文件
-    QFile outputfile;
-    if(!outputfile.open(stdout, QIODevice::WriteOnly))
-    {
-        qDebug() << "Open output file failed";
-        return ;
-    }
-    QXmlStreamWriter writer(&outputfile);
-    writer.setAutoFormatting(true);
-
-    //开始解析
-    while (!reader.atEnd())
-    {
-        QXmlStreamReader::TokenType token = reader.readNext();
-        switch (token)
-        {
-        case QXmlStreamReader::StartDocument:
-            writer.writeStartDocument();
-            break;
-        case QXmlStreamReader::EndDocument:
-            writer.writeEndDocument();
-            break;
-        case QXmlStreamReader::StartElement:
-            if(reader.name() == QString::fromStdString("xbel"))
-            {
-                writer.writeStartElement(reader.name().toString());
-                writer.writeAttribute("version", reader.attributes().value("version").toString());
-            }
-            else if(reader.name() == QString::fromStdString("folder"))
-            {
-                writer.writeStartElement(reader.name().toString());
-                writer.writeAttribute("folded", reader.attributes().value("folded").toString());
-            }
-            else if(reader.name() == QString::fromStdString("title"))
-            {
-                writer.writeStartElement(reader.name().toString());
-            }
-            else if(reader.name() == QString::fromStdString("bookmark"))
-            {
-                writer.writeStartElement(reader.name().toString());
-                writer.writeAttribute("href", reader.attributes().value("href").toString());
-            }
-            break;
-        case QXmlStreamReader::EndElement:
-            writer.writeEndElement();
-            break;
-        case QXmlStreamReader::Characters:
-            writer.writeCharacters(reader.text().toString());
-            break;
-        default:
-            break;
-        }
-    }
-
-    //是否是正常结束
-    if (reader.error())
-    {
-        qDebug() << "Error: " << reader.errorString() << "in file test.xml at line " << reader.lineNumber() << ", column " << reader.columnNumber();
-        return ;
-    }
-
-    //关闭文件
-    inputfile.close();
-    outputfile.flush();
-    outputfile.close();
-    return;
-}

@@ -4,13 +4,21 @@
 #include <QObject>
 #include <QTreeWidgetItem>
 
-class ExtraQTreeWidgetItem:public QObject, public QTreeWidgetItem
+class ExtraQTreeWidgetItem:public QTreeWidgetItem
 {
 public:
-    ExtraQTreeWidgetItem();
-    //o is normal
+    enum NodeType
+    {
+        NodeChild,
+        NodeParent,
+    };
+    ExtraQTreeWidgetItem(NodeType type);
+    //0 is normal
     //1 is deleted
-    int deleteType=0;
+    int deleteType = 0;
+    //1 is recycleParentNode,defaule is 0
+    bool isRecyleParent= 0;
+    NodeType nodeType=NodeChild;
 };
 
 
