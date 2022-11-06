@@ -13,7 +13,9 @@ struct node_info
 };
 
 //根据右键菜单操作类型，更新本地config/node.xml
-void nodeconfig::updateXml(OperationType type,QTreeWidgetItem *parentNode,QTreeWidgetItem *newNode)
+//currentNode is The node that is being operated
+//newNode is the Node in the Add  OperationType and UPDATE
+void nodeconfig::updateXml(OperationType type,QTreeWidgetItem *currentNode,QTreeWidgetItem *newNode)
 {
     QFile file("config/node.xml");
 
@@ -32,8 +34,8 @@ void nodeconfig::updateXml(OperationType type,QTreeWidgetItem *parentNode,QTreeW
     file.close();
     if(type==ADD)
     {
-        QDomNodeList list = doc.elementsByTagName(parentNode->text(0));
-        auto path=util::treeItemToNodePath(parentNode);
+        QDomNodeList list = doc.elementsByTagName(currentNode->text(0));
+        auto path=util::treeItemToNodePath(currentNode);
         for(int i=0;i<list.size();i++)
         {
             QDomElement e = list.at(i).toElement();
@@ -48,8 +50,8 @@ void nodeconfig::updateXml(OperationType type,QTreeWidgetItem *parentNode,QTreeW
     }
     else if(type==DELETE)
     {
-        QDomNodeList list = doc.elementsByTagName(parentNode->text(0));
-        auto path=util::treeItemToNodePath(parentNode);
+        QDomNodeList list = doc.elementsByTagName(currentNode->text(0));
+        auto path=util::treeItemToNodePath(currentNode);
         for(int i=0;i<list.size();i++)
         {
             QDomElement e = list.at(i).toElement();
@@ -62,7 +64,30 @@ void nodeconfig::updateXml(OperationType type,QTreeWidgetItem *parentNode,QTreeW
     }
     else if(type==UPDATE)
     {
-
+        QDomNodeList list = doc.elementsByTagName(currentNode->text(0));
+        auto path=util::treeItemToNodePath(currentNode);
+        QDomElement updateDomElement;
+        for(int i=0;i<list.size();i++)
+        {
+            QDomElement e = list.at(i).toElement();
+            if(e.attribute("path")==path)
+            {
+                updateDomElement=e;
+                e.parentNode().removeChild(e);
+                break;
+            }
+        }
+        QDomNodeList listTargetNode = doc.elementsByTagName(newNode->text(0));
+        auto TargetPath=util::treeItemToNodePath(newNode);
+        for(int i=0;i<listTargetNode.size();i++)
+        {
+            QDomElement e = listTargetNode.at(i).toElement();
+            if(e.attribute("path")==TargetPath)
+            {
+                e.appendChild(updateDomElement);
+                break;
+            }
+        }
     }
     if(!file.open(QFile::WriteOnly|QFile::Truncate))//重写文件，如果不用truncate就是在后面追加内容，就无效了
     {

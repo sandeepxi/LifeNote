@@ -141,8 +141,16 @@ void MainWindow::onDeleteNoteItemClick()
         bool moveResult= QFile::rename(fullPath,recyclePath); //A路径移动到B路径
         std::cout<<"delete node and move file "<<(moveResult ? "true": "false")  <<std::endl;
     }
-    //此处需要先删除doc，因为updateXml中依赖node结构，不能先删node
-    config->updateXml(DELETE,currentNode,NULL);
+    //delete doc(updateXml) must be ahead of the QTreeWidget'Node delete
+    //because updateXml function is depend on the Node struct
+    if(isRecycle)
+    {
+        config->updateXml(DELETE,currentNode);
+    }
+    else
+    {
+        config->updateXml(UPDATE,currentNode,recycleNode);
+    }
     ExtraQTreeWidgetItem* extraCurrentNode= dynamic_cast<ExtraQTreeWidgetItem*>(currentNode);
     extraCurrentNode->deleteType=1;
     currentNode->parent()->removeChild(extraCurrentNode);//this line will trigger currentTreeItemChanged immediately

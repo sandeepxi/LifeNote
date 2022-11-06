@@ -17,7 +17,9 @@ class nodeconfig
 public:
     nodeconfig();
     void readnodefile(QTreeWidget *tree_widget);//启动时，读取文件加载node
-    void updateXml(OperationType type,QTreeWidgetItem *parentNode=NULL,QTreeWidgetItem *child=NULL);//节点发生改变时，重新生成配置文件
+    //currentNode is The node that is being operated
+    //newNode is the Node in the Add  OperationType
+    void updateXml(OperationType type,QTreeWidgetItem *currenttNode,QTreeWidgetItem *newNode=NULL);//节点发生改变时，重新生成配置文件
     void readnodefiletest();
 
 
