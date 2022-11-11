@@ -91,13 +91,13 @@ void MainWindow::onNewNoteGroupItemClick()
         return;
     }
     QTreeWidgetItem *newItem=new ExtraQTreeWidgetItem(ExtraQTreeWidgetItem::NodeParent);
-    QString newNodeGroupName=util::NoRepeatNodeName(ui->treeWidget->currentItem());
+    QString newNodeGroupName=util::NoRepeatNodeName(ui->treeWidget->currentItem(),"新建笔记本");
     newItem->setText(0,newNodeGroupName);
     auto currentNode=ui->treeWidget->currentItem();
     currentNode->addChild(newItem);
     config->updateXml(AddNodeGroup,currentNode,newItem);
     //新增本地文件夹
-    QString dirpath=util::treeItemToNodeDirPath(newItem);
+    QString dirpath=util::treeItemToFullFilePath(newItem,1);
     QDir* dir = new QDir();
     if(!dir->exists(dirpath)){
         dir->mkpath(dirpath);
@@ -113,7 +113,7 @@ void MainWindow::onNewNoteItemClick()
         return;
     }
     QTreeWidgetItem *newItem=new ExtraQTreeWidgetItem(ExtraQTreeWidgetItem::NodeChild);
-    QString newNodeName=util::NoRepeatNodeName(ui->treeWidget->currentItem());
+    QString newNodeName=util::NoRepeatNodeName(ui->treeWidget->currentItem(),"无标题");
     newItem->setText(0,newNodeName);
     auto currentNode=ui->treeWidget->currentItem();
     currentNode->addChild(newItem);
@@ -125,7 +125,7 @@ void MainWindow::onNewNoteItemClick()
         dir->mkpath(dirpath);
     }
     //创建本地空文档html
-    QString filePath=util::treeItemToFullFilePath(newItem);
+    QString filePath=util::treeItemToFullFilePath(newItem,0);
     QFile  myfile(filePath);
     //注意WriteOnly是往文本中写入的时候用，ReadOnly是在读文本中内容的时候用，Truncate表示将原来文件中的内容清空
     if (myfile.open(QFile::WriteOnly))

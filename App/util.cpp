@@ -6,19 +6,18 @@ util::util()
 }
 
 //传入parentnode,输出一个不重复的标题
-QString util::NoRepeatNodeName(QTreeWidgetItem* parentNode)
+QString util::NoRepeatNodeName(QTreeWidgetItem* parentNode,QString nodeName)
 {
     int count=parentNode->childCount();
-    QString name="无标题";
     int index=0;
     while(true)
     {
         bool isEqual=false;
-        QString nodeName=name+(index==0?"":QString::number(index));
+        QString Name=nodeName+(index==0?"":QString::number(index));
         for(int i=0;i<count;i++)
         {
             auto child= parentNode->child(i);
-            if(child->text(0)==nodeName)
+            if(child->text(0)==Name)
             {
                 index++;
                 isEqual=true;
@@ -30,7 +29,7 @@ QString util::NoRepeatNodeName(QTreeWidgetItem* parentNode)
             break;
         }
     }
-    return name+(index==0?"":QString::number(index));
+    return nodeName+(index==0?"":QString::number(index));
 }
 
 //获取节点的路径xml记录的path,如 笔记本/每日工作/无标题.html ，返回 笔记本/每日工作/无标题
@@ -63,11 +62,24 @@ QString util::treeItemToFileName(QTreeWidgetItem* treeItem)
     return fileName;
 }
 
-//返回完整地存储路径，如D://笔记本/工作.html
-QString util::treeItemToFullFilePath(QTreeWidgetItem* treeItem)
+//return the full path，default type is 0
+//if the type is 0(Node),return full file storagePath for NodeItem, for instance - D://笔记本/工作.html
+//if the type is 1(NodeGroup),return full storagePath for newItemGroup（means a file directoy，not a file） for instance - D://笔记本/新建笔记本1
+QString util::treeItemToFullFilePath(QTreeWidgetItem* treeItem,int type)
 {
+
     auto currentPath= QCoreApplication::applicationDirPath();
     //保存上一个节点的内容
     QString nodePath=treeItemToNodePath(treeItem);
-    return QString("%1/storage/%2.html").arg(currentPath,nodePath);
+    if(type==0)
+    {
+        return QString("%1/storage/%2.html").arg(currentPath,nodePath);
+    }
+    else if(type==1)
+    {
+        return QString("%1/storage/%2").arg(currentPath,nodePath);
+    }
 }
+
+//
+
