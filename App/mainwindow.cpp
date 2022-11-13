@@ -63,7 +63,9 @@ MainWindow::MainWindow(QWidget *parent)
     connect(moveNoteAction, SIGNAL(triggered(bool)), this , SLOT(onMoveNoteItemClick()));
     connect(lockAction, SIGNAL(triggered(bool)), this , SLOT(onLockItemClick()));
     connect(deleteNoteAction, SIGNAL(triggered(bool)), this , SLOT(onDeleteNoteItemClick()));
+    connect(recoverNoteAction, SIGNAL(triggered(bool)), this , SLOT(onRecoverNoteItemClick()));
 }
+
 
 //初始化treewidget 右键菜单
 void MainWindow::initRightMenu()
@@ -74,6 +76,7 @@ void MainWindow::initRightMenu()
     moveNoteAction = new QAction("移动笔记", ui->treeWidget);
     lockAction = new QAction("添加密码锁", ui->treeWidget);
     deleteNoteAction = new QAction("删除笔记", ui->treeWidget);
+    recoverNoteAction=new QAction("恢复笔记",ui->treeWidget);
     rightMenu=new QMenu(ui->treeWidget);
     rightMenu->addAction(newNoteAction);
     rightMenu->addAction(newNoteGroupAction);
@@ -81,6 +84,7 @@ void MainWindow::initRightMenu()
     rightMenu->addAction(moveNoteAction);
     rightMenu->addAction(lockAction);
     rightMenu->addAction(deleteNoteAction);
+    rightMenu->addAction(recoverNoteAction);
 }
 
 //right click Menu, new NoteGroup
@@ -188,6 +192,21 @@ void MainWindow::onDeleteNoteItemClick()
        recycleNode->addChild(extraCurrentNode);
     }
     setAllItemIcon();
+}
+
+//right-click Menu, recover Note
+void MainWindow::onRecoverNoteItemClick()
+{
+    ExtraQTreeWidgetItem* currentNode=dynamic_cast<ExtraQTreeWidgetItem*>(ui->treeWidget->currentItem());
+    auto path= util::treeItemToNodeDirPath(ui->treeWidget->currentItem());
+    auto currentPath= QCoreApplication::applicationDirPath();
+
+    //移动本地存储文件到回收站
+    /*
+    QString fileName = util::treeItemToFileName(ui->treeWidget->currentItem()); //文件名称，如xxx.html
+    auto recyclePath=QString("%1/storage/回收站/%2").arg(currentPath,fileName);
+    bool moveResult= QFile::rename(recyclePath,""); //A路径移动到B路径
+    std::cout<<"recycle Recover:  "<<( moveResult ? "true": "false")  <<std::endl;*/
 }
 
 void MainWindow::onSaveNoteItemClick()

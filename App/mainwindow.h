@@ -17,7 +17,7 @@
 #include<QImageReader>
 #include "nodeconfig.h"
 #include "extraqtreewidgetitem.h"
-#include "util.h"
+
 
 
 QT_BEGIN_NAMESPACE
@@ -40,6 +40,7 @@ private:
     QAction * newNoteAction;
     QAction * newNoteGroupAction;
     QAction * deleteNoteAction;
+    QAction * recoverNoteAction;
     QAction * saveNoteAction;
     QAction * moveNoteAction;
     QAction * lockAction;
@@ -69,5 +70,6 @@ public slots:
     void onMoveNoteItemClick();
     void onLockItemClick();
     void onDeleteNoteItemClick();
+    void onRecoverNoteItemClick();
 };
 #endif // MAINWINDOW_H
