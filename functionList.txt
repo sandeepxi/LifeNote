@@ -1,0 +1,8 @@
+todo functionList：
+
+一、Right MenuItem
+1、SaveNote，Add pinned SaveItem
+2、Recycle recover Note
+3、MoveItem
+4、LockItem - set password 
+
