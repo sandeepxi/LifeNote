@@ -9,6 +9,8 @@ MainWindow::MainWindow(QWidget *parent)
 {
     ui->setupUi(this);
 
+    //this->setWindowIcon(QIcon(":/res/icons/logo.ico"));
+   // setWindowIcon(QIcon(":/res/icons/logo.ico"));
     //设置左侧侧边栏样式
     ui->leftBar->setStyleSheet(QString("QAbstractButton{min-height:%1px;max-height:%1px;margin:0px;border:none;}").arg(17));
     ui->titleBar->setStyleSheet(QString("QAbstractButton{min-height:%1px;max-height:%1px;margin:0px;}").arg(25));
