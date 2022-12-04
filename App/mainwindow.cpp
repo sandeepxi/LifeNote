@@ -14,8 +14,8 @@ MainWindow::MainWindow(QWidget *parent)
     ui->titleBar->setStyleSheet(QString("QAbstractButton{min-height:%1px;max-height:%1px;margin:0px;}").arg(25));
 
     //set titleLineEdit stylesheet
-    ui->titleLineEdit->setStyleSheet("border: 0px;margin:0px,0px,0px");
-    ui->textEdit->setStyleSheet("border:0px;margin:-10px,0px;padding:-10px,0px");
+    ui->titleLineEdit->setStyleSheet("border: 0px;");
+    ui->textEdit->setStyleSheet("border:0px;");
     ui->editWidget->layout()->setSpacing(0);
 
     ui->treeWidget->setColumnCount(1);
