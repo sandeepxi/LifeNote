@@ -119,7 +119,7 @@ void nodeconfig::updateXml(OperationType type,QTreeWidgetItem *currentNode,QTree
 void nodeconfig::readNodeConfigXML(QTreeWidget *tree_widget)
 {
     //设置输入文件
-    QFile inputfile("config/node.xml");
+    QFile inputfile("../../../config/node.xml");
     qDebug()<<QDir::currentPath();
     if(!inputfile.open(QIODevice::ReadOnly))
     {

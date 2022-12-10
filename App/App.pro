@@ -35,5 +35,15 @@ else: unix:!android: target.path = /opt/$${TARGET}/bin
 
 RESOURCES += \
     res.qrc
+# 配置file_copies
+CONFIG += file_copies
 
+# 创建transfer自定义变量
+# 配置需要复制的文件或目录(支持通配符)
+transfer.files = $$PWD/config #$$PWD表示工程源代码所在目录
+# 配置需要复制的目标目录, $$OUT_PWD含义为程序输出目录
+transfer.path = $$OUT_PWD/
+
+# 配置COPIES
+COPIES += transfer
 
