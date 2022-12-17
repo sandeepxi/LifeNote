@@ -71,6 +71,7 @@ MainWindow::MainWindow(QWidget *parent)
     connect(lockAction, SIGNAL(triggered(bool)), this , SLOT(onLockItemClick()));
     connect(deleteNoteAction, SIGNAL(triggered(bool)), this , SLOT(onDeleteNoteItemClick()));
     connect(recoverNoteAction, SIGNAL(triggered(bool)), this , SLOT(onRecoverNoteItemClick()));
+    connect(ui->titleLineEdit,&QLineEdit::editingFinished,this,&MainWindow::onTitleLineEditEditingFinished);
 }
 
 
@@ -143,6 +144,10 @@ void MainWindow::onNewNoteItemClick()
     {
         myfile.close();
     }
+    //set selectedItem to the newItem
+    ui->treeWidget->setCurrentItem(newItem);
+    //set focus to the right-titleLineEdit, Convenient for users to modify the title
+    ui->titleLineEdit->setFocus();
     setAllItemIcon();
 }
 
@@ -253,7 +258,7 @@ void MainWindow::currentTreeItemChanged(QTreeWidgetItem *current, QTreeWidgetIte
     //when delete node,the focus will be changed,and this function will be trigger.
     //so when the previous node is deleted, it's deletetype is 1 , don't save the previous node content.
     //otherwise, delete node, the local file will be create again.
-    if(previous!=NULL&& extraPreviousNode->deleteType==0&&previous->childCount()==0)
+    if(previous!=NULL && extraPreviousNode->deleteType==0 && previous->childCount()==0)
     {
         auto previewFullPath=util::treeItemToFullFilePath(previous); //如d:/sotrage/xxx.html
         //解析出路径（不含文件名）和文件名
@@ -280,7 +285,9 @@ void MainWindow::currentTreeItemChanged(QTreeWidgetItem *current, QTreeWidgetIte
     {
         return;
     }
-    //加载当前节点的内容
+    //load current node‘s title to right-titleLineEdit title
+    ui->titleLineEdit->setText(current->text(0));
+    //load current node's local file content to right-textEdit content
     auto fullPath=util::treeItemToFullFilePath(current);
     QFile file(fullPath);
     if(!file.open(QIODevice::ReadOnly | QIODevice::Text))
@@ -448,6 +455,18 @@ void MainWindow::InsertImageDialog()
     imageFormat.setName( Uri.toString() );
     cursor.insertImage(imageFormat);
 }
+
+void MainWindow::onTitleLineEditEditingFinished()
+{
+    qDebug("onTitleLineEditEditingFinished");
+    if(ui->titleLineEdit->text().length()==0)
+    {
+        return;
+    }
+    ui->treeWidget->currentItem()->setText(0,ui->titleLineEdit->text());
+    //todo add the local file change
+}
+
 
 MainWindow::~MainWindow()
 {

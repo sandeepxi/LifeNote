@@ -71,5 +71,7 @@ public slots:
     void onLockItemClick();
     void onDeleteNoteItemClick();
     void onRecoverNoteItemClick();
+
+    void onTitleLineEditEditingFinished();
 };
 #endif // MAINWINDOW_H
