@@ -53,3 +53,4 @@ compile_commands.json
 
 #mac system file
 *DS_Store
+.qtc_clangd
