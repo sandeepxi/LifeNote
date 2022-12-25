@@ -15,7 +15,7 @@ struct node_info
 //newNode is the Node in the Add  OperationType and UPDATE
 void nodeconfig::updateXml(OperationType type,QTreeWidgetItem *currentNode,QTreeWidgetItem *newNode)
 {
-    QFile file("config/node.xml");
+    QFile file("../../../config/node.xml");
 
     if(!file.open(QIODevice::ReadOnly))
     {

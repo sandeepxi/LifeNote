@@ -18,6 +18,7 @@ SOURCES += \
     util.cpp
 
 HEADERS += \
+    baseinfo.h \
     extraqtreewidgetitem.h \
     mainwindow.h \
     nodeconfig.h \

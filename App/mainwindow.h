@@ -1,6 +1,7 @@
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
 
+#include "baseinfo.h"
 #include <QMainWindow>
 #include<QMessageBox>
 //#include "svgtextlabel.h"
@@ -17,6 +18,7 @@
 #include<QImageReader>
 #include "nodeconfig.h"
 #include "extraqtreewidgetitem.h"
+
 
 
 

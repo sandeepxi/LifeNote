@@ -129,25 +129,15 @@ void MainWindow::onNewNoteItemClick()
     newItem->setText(0,newNodeName);
     auto currentNode=ui->treeWidget->currentItem();
     currentNode->addChild(newItem);
-    config->updateXml(AddNode,currentNode,newItem);
-    //新增本地文件html
-    QString dirpath=util::treeItemToNodeDirPath(newItem);
-    QDir* dir = new QDir();
-    if(!dir->exists(dirpath)){
-        dir->mkpath(dirpath);
-    }
-    //创建本地空文档html
-    QString filePath=util::treeItemToFullFilePath(newItem,0);
-    QFile  myfile(filePath);
-    //注意WriteOnly是往文本中写入的时候用，ReadOnly是在读文本中内容的时候用，Truncate表示将原来文件中的内容清空
-    if (myfile.open(QFile::WriteOnly))
-    {
-        myfile.close();
-    }
+
     //set selectedItem to the newItem
     ui->treeWidget->setCurrentItem(newItem);
     //set focus to the right-titleLineEdit, Convenient for users to modify the title
     ui->titleLineEdit->setFocus();
+
+    //update local xml and html when titleLineEdit finishEdit 。
+    //in the function onTitleLineEditEditingFinished()
+
     setAllItemIcon();
 }
 
@@ -160,7 +150,7 @@ void MainWindow::onDeleteNoteItemClick()
     ExtraQTreeWidgetItem* currentNode=dynamic_cast<ExtraQTreeWidgetItem*>(ui->treeWidget->currentItem());
     auto currentPath= QCoreApplication::applicationDirPath();
     auto fullPath= util::treeItemToFullFilePath(currentNode); //如d:/sotrage/xxx.html
-    bool isRecycle=currentNode->parent()->text(0)=="回收站"; //is recycle Node
+    bool isRecycle=currentNode->parent()->text(0)==RECYLE; //is recycle Node
     //if is recycleNode's child node ,delete directly
     if(isRecycle)
     {
@@ -180,7 +170,7 @@ void MainWindow::onDeleteNoteItemClick()
         {
             //移动本地存储文件到回收站
             QString fileName = util::treeItemToFileName(currentNode); //文件名称，如xxx.html
-            auto recyclePath=QString("%1/storage/回收站/%2").arg(currentPath,fileName);
+            auto recyclePath=QString("%1/storage/%2/%3").arg(currentPath,RECYLE,fileName);
             bool moveResult= QFile::rename(fullPath,recyclePath); //A路径移动到B路径
             std::cout<<"delete node and move file "<<(moveResult ? "true": "false")  <<std::endl;
         }
@@ -308,7 +298,7 @@ void MainWindow::initRecycleNode()
     for (int i = 0; i < size; i++)
     {
         child = ui->treeWidget->topLevelItem(i);
-        if(child->text(0)=="回收站")
+        if(child->text(0)==RECYLE)
         {
             recycleNode=child;
             break;
@@ -463,8 +453,28 @@ void MainWindow::onTitleLineEditEditingFinished()
     {
         return;
     }
+    if( ui->treeWidget->currentItem()->childCount()>0)
+    {
+        //todo , return when selectNode is Parent
+        return;
+    }
     ui->treeWidget->currentItem()->setText(0,ui->titleLineEdit->text());
-    //todo add the local file change
+    //update the local file change
+    config->updateXml(AddNode, ui->treeWidget->currentItem()->parent(), ui->treeWidget->currentItem());
+    //新增本地文件html
+    QString dirpath=util::treeItemToNodeDirPath( ui->treeWidget->currentItem());
+    QDir* dir = new QDir();
+    if(!dir->exists(dirpath)){
+        dir->mkpath(dirpath);
+    }
+    //创建本地空文档html
+    QString filePath=util::treeItemToFullFilePath( ui->treeWidget->currentItem(),0);
+    QFile  myfile(filePath);
+    //注意WriteOnly是往文本中写入的时候用，ReadOnly是在读文本中内容的时候用，Truncate表示将原来文件中的内容清空
+    if (myfile.open(QFile::WriteOnly))
+    {
+        myfile.close();
+    }
 }
 
 

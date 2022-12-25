@@ -11,6 +11,7 @@
 #include <QTreeWidgetItem>
 #include <QDomElement>
 #include <iostream>
+#include "baseinfo.h"
 #include "util.h"
 class nodeconfig
 {
