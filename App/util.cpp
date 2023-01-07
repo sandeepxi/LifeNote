@@ -1,35 +1,9 @@
 #include "util.h"
+#include "baseinfo.h"
 
 util::util()
 {
 
-}
-
-//传入parentnode,输出一个不重复的标题
-QString util::NoRepeatNodeName(QTreeWidgetItem* parentNode,QString nodeName)
-{
-    int count=parentNode->childCount();
-    int index=0;
-    while(true)
-    {
-        bool isEqual=false;
-        QString Name=nodeName+(index==0?"":QString::number(index));
-        for(int i=0;i<count;i++)
-        {
-            auto child= parentNode->child(i);
-            if(child->text(0)==Name)
-            {
-                index++;
-                isEqual=true;
-                break;
-            }
-        }
-        if(!isEqual)//若循环完，都不相同，那么跳出while循环
-        {
-            break;
-        }
-    }
-    return nodeName+(index==0?"":QString::number(index));
 }
 
 //获取节点的路径xml记录的path,如 笔记本/每日工作/无标题.html ，返回 笔记本/每日工作/无标题
@@ -65,21 +39,47 @@ QString util::treeItemToFileName(QTreeWidgetItem* treeItem)
 //return the full path，default type is 0
 //if the type is 0(Node),return full file storagePath for NodeItem, for instance - D://笔记本/工作.html
 //if the type is 1(NodeGroup),return full storagePath for newItemGroup（means a file directoy，not a file） for instance - D://笔记本/新建笔记本1
-QString util::treeItemToFullFilePath(QTreeWidgetItem* treeItem,int type)
+QString util::treeItemToFullFilePath(QTreeWidgetItem* treeItem,BaseInfo::NodeType type)
 {
-
     auto currentPath= QCoreApplication::applicationDirPath();
     //保存上一个节点的内容
     QString nodePath=treeItemToNodePath(treeItem);
-    if(type==0)
+    if(type==BaseInfo::Child)
     {
         return QString("%1/storage/%2.html").arg(currentPath,nodePath);
     }
-    else if(type==1)
+    else if(type==BaseInfo::Parent)
     {
         return QString("%1/storage/%2").arg(currentPath,nodePath);
     }
+    return "";
 }
 
+//传入parentnode,输出一个不重复的标题
+QString util::NoRepeatNodeName(QTreeWidgetItem* parentNode,QString nodeName)
+{
+    int count=parentNode->childCount();
+    int index=0;
+    while(true)
+    {
+        bool isEqual=false;
+        QString Name=nodeName+(index==0?"":QString::number(index));
+        for(int i=0;i<count;i++)
+        {
+            auto child= parentNode->child(i);
+            if(child->text(0)==Name)
+            {
+                index++;
+                isEqual=true;
+                break;
+            }
+        }
+        if(!isEqual)//若循环完，都不相同，那么跳出while循环
+        {
+            break;
+        }
+    }
+    return nodeName+(index==0?"":QString::number(index));
+}
 //
 

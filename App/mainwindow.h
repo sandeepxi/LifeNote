@@ -1,10 +1,8 @@
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
 
-#include "baseinfo.h"
 #include <QMainWindow>
 #include<QMessageBox>
-//#include "svgtextlabel.h"
 #include<QSpinBox>
 #include<QColorDialog>
 #include<QTreeWidget>
@@ -73,7 +71,9 @@ public slots:
     void onLockItemClick();
     void onDeleteNoteItemClick();
     void onRecoverNoteItemClick();
+    void onMenuToShow();
 
     void onTitleLineEditEditingFinished();
+
 };
 #endif // MAINWINDOW_H

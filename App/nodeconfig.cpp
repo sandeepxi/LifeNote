@@ -13,7 +13,7 @@ struct node_info
 
 //currentNode is The node that is being operated
 //newNode is the Node in the Add  OperationType and UPDATE
-void nodeconfig::updateXml(OperationType type,QTreeWidgetItem *currentNode,QTreeWidgetItem *newNode)
+void nodeconfig::updateXml(BaseInfo::OperationType type,QTreeWidgetItem *currentNode,QTreeWidgetItem *newNode)
 {
     QFile file("../../../config/node.xml");
 
@@ -30,81 +30,32 @@ void nodeconfig::updateXml(OperationType type,QTreeWidgetItem *currentNode,QTree
         return;
     }
     file.close();
-    if(type==AddNode)
+    if(type==BaseInfo::AddNode||type==BaseInfo::AddNodeGroup)
     {
-        QDomNodeList list = doc.elementsByTagName(currentNode->text(0));
         auto path=util::treeItemToNodePath(currentNode);
-        for(int i=0;i<list.size();i++)
-        {
-            QDomElement e = list.at(i).toElement();
-            if(e.attribute("path")==path)
-            {
-                QDomElement newDomElement=doc.createElement(newNode->text(0));
-                list.at(i).appendChild(newDomElement);
-                newDomElement.setAttribute("path",util::treeItemToNodePath(newNode));
-                newDomElement.setAttribute("nodetype","0");
-                break;
-            }
-        }
+        QDomNode parentDomElement=selectSingleNode(path,&doc);
+        QDomElement newDomElement=doc.createElement(newNode->text(0));
+        parentDomElement.appendChild(newDomElement);
+        newDomElement.setAttribute("nodetype",type==BaseInfo::AddNode?0:1);
     }
-    else if(type==AddNodeGroup)
+    else if(type==BaseInfo::MoveNode)
     {
-        QDomNodeList list = doc.elementsByTagName(currentNode->text(0));
         auto path=util::treeItemToNodePath(currentNode);
-        for(int i=0;i<list.size();i++)
-        {
-            QDomElement e = list.at(i).toElement();
-            if(e.attribute("path")==path)
-            {
-                QDomElement newDomElement=doc.createElement(newNode->text(0));
-                list.at(i).appendChild(newDomElement);
-                newDomElement.setAttribute("path",util::treeItemToNodePath(newNode));
-                newDomElement.setAttribute("nodetype","1");
-                break;
-            }
-        }
+        QDomNode domElement=selectSingleNode(path,&doc);
+        //remove the currentNode
+        domElement.parentNode().removeChild(domElement);
+        //recyledomNode  add the current
+        auto recylePath=util::treeItemToNodePath(newNode);
+        QDomNode recyleDomNode=selectSingleNode(recylePath,&doc);
+        recyleDomNode.appendChild(domElement);
     }
-    else if(type==DeleteNode)
+    else if(type==BaseInfo::DeleteNode)
     {
-        QDomNodeList list = doc.elementsByTagName(currentNode->text(0));
         auto path=util::treeItemToNodePath(currentNode);
-        for(int i=0;i<list.size();i++)
-        {
-            QDomElement e = list.at(i).toElement();
-            if(e.attribute("path")==path)
-            {
-                e.parentNode().removeChild(e);
-                break;
-            }
-        }
+        QDomNode domElement=selectSingleNode(path,&doc);
+        domElement.parentNode().removeChild(domElement);
     }
-    else if(type==MoveNode)
-    {
-        QDomNodeList list = doc.elementsByTagName(currentNode->text(0));
-        auto path=util::treeItemToNodePath(currentNode);
-        QDomElement updateDomElement;
-        for(int i=0;i<list.size();i++)
-        {
-            QDomElement e = list.at(i).toElement();
-            if(e.attribute("path")==path)
-            {
-                updateDomElement=e;
-                e.parentNode().removeChild(e);
-                break;
-            }
-        }
-        QDomNodeList listTargetNode = doc.elementsByTagName(newNode->text(0));
-        auto TargetPath=util::treeItemToNodePath(newNode);
-        for(int i=0;i<listTargetNode.size();i++)
-        {
-            QDomElement e = listTargetNode.at(i).toElement();
-            if(e.attribute("path")==TargetPath)
-            {
-                e.appendChild(updateDomElement);
-                break;
-            }
-        }
-    }
+
     if(!file.open(QFile::WriteOnly|QFile::Truncate))//重写文件，如果不用truncate就是在后面追加内容，就无效了
     {
         return;
@@ -143,14 +94,14 @@ void nodeconfig::readNodeConfigXML(QTreeWidget *tree_widget)
             {
                 node_info *node = new node_info();
                 node->node_name=reader.name().toString();
-                ExtraQTreeWidgetItem::NodeType isParent=ExtraQTreeWidgetItem::NodeChild;
+                BaseInfo::NodeType isParent=BaseInfo::Child;
                 foreach (const QXmlStreamAttribute & attribute, reader.attributes())
                 {
                     qDebug()<<attribute.name();
                     qDebug()<<attribute.value();
                     if(attribute.name().toString()=="nodetype")
                     {
-                        isParent= attribute.value().toString()=="0"?ExtraQTreeWidgetItem::NodeChild:ExtraQTreeWidgetItem::NodeParent;
+                        isParent= attribute.value().toString()=="0"?BaseInfo::Child:BaseInfo::Parent;
                         break;
                     }
                 }
@@ -204,6 +155,55 @@ void nodeconfig::readNodeConfigXML(QTreeWidget *tree_widget)
     //关闭文件
     inputfile.close();
     return;
+}
+
+//根据xml的路径，找出xml的相应节点QDomNode
+//循环遍历xml节点，通过判断节点名是否和path的相应部分匹配，不断向下找
+//为什么写这个方法，是因为原先只能通过在xml中设置属性，通过属性来判断，如下面这段代码，但是这样会导致xml内容臃肿，所以selectSingleNode能让xml看起来更简洁
+/*
+ QDomNodeList list = doc.elementsByTagName(path);
+ for(int i=0;i<list.size();i++)
+ {
+    QDomElement e = list.at(i).toElement();
+    if(e.attribute("path")==path)
+    {
+        QDomElement newDomElement=doc.createElement(newNode->text(0));
+        list.at(i).appendChild(newDomElement);
+        break;
+    }
+}*/
+QDomNode nodeconfig::selectSingleNode(const QString& path,QDomDocument* doc) const
+{
+   // doc->documentElement()
+    QStringList list=path.split(u'/');
+
+    int i=0;
+    auto rootElement=doc->documentElement();
+    auto childNode=rootElement.firstChild();
+    QString currentStr=list.at(0);
+
+       while(!childNode.isNull())
+       {
+           if(childNode.toElement().tagName()==list.at(i))
+           {
+               if(i==list.size()-1)//完全匹配上了
+               {
+                   return childNode;
+               }
+              if(childNode.hasChildNodes())
+              {
+                  QDomNodeList nodeList= childNode.childNodes();
+                  childNode=nodeList.at(0);
+                  i++;
+                  currentStr=list.at(i);
+              }
+           }
+           else
+           {
+              childNode=childNode.nextSibling();//将同级的下一个节点，赋给childNode
+           }
+       }
+    return childNode;
 }
 
 

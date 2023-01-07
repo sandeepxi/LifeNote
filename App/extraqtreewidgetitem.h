@@ -3,16 +3,12 @@
 
 #include <QObject>
 #include <QTreeWidgetItem>
-
+#include "baseinfo.h"
 class ExtraQTreeWidgetItem:public QTreeWidgetItem
 {
 public:
-    enum NodeType
-    {
-        NodeChild,
-        NodeParent,
-    };
-    ExtraQTreeWidgetItem(NodeType type);
+
+    ExtraQTreeWidgetItem(BaseInfo::NodeType type);
     //0 is normal
     //1 is deleted
     int deleteType = 0;
@@ -20,7 +16,7 @@ public:
     bool isRecyleParent= 0;
 
     //this is to distinguish menu add note（新建笔记） or menu add node group（新建笔记本）
-    NodeType nodeType=NodeChild;
+    BaseInfo::NodeType nodeType=BaseInfo::Child;
 };
 
 
