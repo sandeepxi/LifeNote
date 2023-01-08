@@ -1,5 +1,8 @@
 #include "nodeconfig.h"
 #include "extraqtreewidgetitem.h"
+#include "util.h"
+
+#define CONFIG_PATH "../../../ConfigTemplate/node.xml"
 
 nodeconfig::nodeconfig()
 {
@@ -15,7 +18,7 @@ struct node_info
 //newNode is the Node in the Add  OperationType and UPDATE
 void nodeconfig::updateXml(BaseInfo::OperationType type,QTreeWidgetItem *currentNode,QTreeWidgetItem *newNode)
 {
-    QFile file("../../../config/node.xml");
+    QFile file(CONFIG_PATH);
 
     if(!file.open(QIODevice::ReadOnly))
     {
@@ -70,7 +73,7 @@ void nodeconfig::updateXml(BaseInfo::OperationType type,QTreeWidgetItem *current
 void nodeconfig::readNodeConfigXML(QTreeWidget *tree_widget)
 {
     //设置输入文件
-    QFile inputfile("../../../config/node.xml");
+    QFile inputfile(CONFIG_PATH);
     qDebug()<<QDir::currentPath();
     if(!inputfile.open(QIODevice::ReadOnly))
     {

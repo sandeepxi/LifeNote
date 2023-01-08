@@ -1,10 +1,8 @@
 #ifndef UTIL_H
 #define UTIL_H
 
-#include <QObject>
 #include <QTreeWidgetItem>
-#include <QCoreApplication>
-#include "baseinfo.h""
+#include "baseinfo.h"
 
 class util
 {

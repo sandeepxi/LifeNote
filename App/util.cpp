@@ -1,6 +1,6 @@
 #include "util.h"
 #include "baseinfo.h"
-
+#include <QApplication>
 util::util()
 {
 
