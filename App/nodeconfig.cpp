@@ -39,13 +39,13 @@ void nodeconfig::updateXml(BaseInfo::OperationType type,QTreeWidgetItem *current
         QDomNode parentDomElement=selectSingleNode(path,&doc);
         //Check whether the node name starts with a digit， xml nodename is invaild start with digit
         bool startWithDigit=util::isStartWidthDigit(newNode->text(0));
-        QDomElement newDomElement=doc.createElement(startWithDigit?(STARTFLAG+newNode->text(0)):newNode->text(0));
+        QDomElement newDomElement=doc.createElement(startWithDigit?(START_FLAG+newNode->text(0)):newNode->text(0));
         if(startWithDigit)
         {
-            newDomElement.setAttribute("isStartWithDigit","true");
+            newDomElement.setAttribute(ATTRIBUTE_STARTFLAG,"true");
         }
         parentDomElement.appendChild(newDomElement);
-        newDomElement.setAttribute("nodetype",type==BaseInfo::AddNode?0:1);
+        newDomElement.setAttribute(ATTRIBUTE_NOTETYPE,type==BaseInfo::AddNode?0:1);
     }
     else if(type==BaseInfo::MoveNode)
     {
@@ -108,13 +108,13 @@ void nodeconfig::loadConfigXML(QTreeWidget *tree_widget)
                 {
                     qDebug()<<attribute.name();
                     qDebug()<<attribute.value();
-                    if(attribute.name().toString()=="nodetype")
+                    if(attribute.name().toString()==ATTRIBUTE_NOTETYPE)
                     {
                         isParent= attribute.value().toString()=="0"?BaseInfo::Child:BaseInfo::Parent;
                     }
-                    else if(attribute.name().toString()=="isStartWithDigit")
+                    else if(attribute.name().toString()==ATTRIBUTE_STARTFLAG)//若是有startflag标记的，还原成原来的字符串
                     {
-                        if(node->node_name.startsWith(STARTFLAG))
+                        if(node->node_name.startsWith(START_FLAG))
                         {
                            node->node_name=node->node_name.mid(1,node->node_name.length()-1);
                         }
@@ -199,7 +199,9 @@ QDomNode nodeconfig::selectSingleNode(const QString& path,QDomDocument* doc) con
 
        while(!childNode.isNull())
        {
-           if(childNode.toElement().tagName()==list.at(i))
+           if(childNode.toElement().tagName()==list.at(i)
+              ||(childNode.toElement().tagName().startsWith(START_FLAG)&&
+                 childNode.toElement().tagName().contains(list.at(i))))
            {
                if(i==list.size()-1)//完全匹配上了
                {
