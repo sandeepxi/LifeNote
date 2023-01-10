@@ -81,5 +81,16 @@ QString util::NoRepeatNodeName(QTreeWidgetItem* parentNode,QString nodeName)
     }
     return nodeName+(index==0?"":QString::number(index));
 }
+
+bool util::isStartWidthDigit(const QString& nodeName)
+{
+    if(nodeName.length()>0)
+    {
+        auto c=nodeName.left(1).toStdString();
+        return std::isdigit(c[0]);
+    }
+    return false;
+}
+
 //
 

@@ -37,7 +37,13 @@ void nodeconfig::updateXml(BaseInfo::OperationType type,QTreeWidgetItem *current
     {
         auto path=util::treeItemToNodePath(currentNode);
         QDomNode parentDomElement=selectSingleNode(path,&doc);
-        QDomElement newDomElement=doc.createElement(newNode->text(0));
+        //Check whether the node name starts with a digit， xml nodename is invaild start with digit
+        bool startWithDigit=util::isStartWidthDigit(newNode->text(0));
+        QDomElement newDomElement=doc.createElement(startWithDigit?(STARTFLAG+newNode->text(0)):newNode->text(0));
+        if(startWithDigit)
+        {
+            newDomElement.setAttribute("isStartWithDigit","true");
+        }
         parentDomElement.appendChild(newDomElement);
         newDomElement.setAttribute("nodetype",type==BaseInfo::AddNode?0:1);
     }
@@ -70,7 +76,7 @@ void nodeconfig::updateXml(BaseInfo::OperationType type,QTreeWidgetItem *current
 
 //XML struct is seem like qtreeWidget ,is a tree
 //The node is added to the treewidget by loop the xml document
-void nodeconfig::readNodeConfigXML(QTreeWidget *tree_widget)
+void nodeconfig::loadConfigXML(QTreeWidget *tree_widget)
 {
     //设置输入文件
     QFile inputfile(CONFIG_PATH);
@@ -105,7 +111,13 @@ void nodeconfig::readNodeConfigXML(QTreeWidget *tree_widget)
                     if(attribute.name().toString()=="nodetype")
                     {
                         isParent= attribute.value().toString()=="0"?BaseInfo::Child:BaseInfo::Parent;
-                        break;
+                    }
+                    else if(attribute.name().toString()=="isStartWithDigit")
+                    {
+                        if(node->node_name.startsWith(STARTFLAG))
+                        {
+                           node->node_name=node->node_name.mid(1,node->node_name.length()-1);
+                        }
                     }
                 }
                 node->widgetitem=new ExtraQTreeWidgetItem(isParent);

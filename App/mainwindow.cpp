@@ -37,7 +37,7 @@ MainWindow::MainWindow(QWidget *parent)
     ui->treeWidget->setFrameStyle(QFrame::NoFrame);
 
     //通过配置文件，创建node
-    config->readNodeConfigXML(ui->treeWidget);
+    config->loadConfigXML(ui->treeWidget);
 
     setAllItemIcon();
 
@@ -113,8 +113,7 @@ void MainWindow::onNewNoteGroupItemClick()
     ui->treeWidget->setCurrentItem(newItem);
     //set focus to the right-titleLineEdit, Convenient for users to modify the title
     ui->titleLineEdit->setFocus();
-    //not allow to edit the Nodegroup
-    ui->textEdit->setEnabled(false);
+
 
     //update local xml and html when titleLineEdit finishEdit 。
     //in the function onTitleLineEditEditingFinished()
@@ -295,7 +294,13 @@ void MainWindow::currentTreeItemChanged(QTreeWidgetItem *current, QTreeWidgetIte
     {
          ui->textEdit->setHtml("");
          ui->titleLineEdit->setText(current->text(0));
+         //not allow to edit the Nodegroup
+         ui->textEdit->setEnabled(false);
          return;
+    }
+    else
+    {
+         ui->textEdit->setEnabled(true);
     }
     //load current node‘s title to right-titleLineEdit title
     ui->titleLineEdit->setText(current->text(0));
