@@ -199,9 +199,9 @@ QDomNode nodeconfig::selectSingleNode(const QString& path,QDomDocument* doc) con
 
        while(!childNode.isNull())
        {
-           if(childNode.toElement().tagName()==list.at(i)
-              ||(childNode.toElement().tagName().startsWith(START_FLAG)&&
-                 childNode.toElement().tagName().contains(list.at(i))))
+           if(childNode.toElement().tagName()==list.at(i)||
+                 (childNode.toElement().tagName().startsWith(START_FLAG)&& //这个条件判断下若是有开头记号的node，则判断是否带有记号，且包含该字符串list.at(i)
+                  childNode.toElement().tagName().contains(list.at(i))))
            {
                if(i==list.size()-1)//完全匹配上了
                {

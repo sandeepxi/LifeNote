@@ -76,26 +76,110 @@ MainWindow::MainWindow(QWidget *parent)
 }
 
 
-//初始化treewidget 右键菜单
-void MainWindow::initRightMenu()
+#pragma region TitleBar-Button-Funciton{
+void MainWindow::boldBtn_clicked()
 {
-    newNoteAction = new QAction("新建笔记", ui->treeWidget);
-    newNoteGroupAction = new QAction("新建笔记本", ui->treeWidget);
-    saveNoteAction = new QAction("收藏笔记", ui->treeWidget);
-    moveNoteAction = new QAction("移动笔记", ui->treeWidget);
-    lockAction = new QAction("添加密码锁", ui->treeWidget);
-    deleteNoteAction = new QAction("删除笔记", ui->treeWidget);
-    recoverNoteAction=new QAction("恢复笔记",ui->treeWidget);
-    rightMenu=new QMenu(ui->treeWidget);
-    rightMenu->addAction(newNoteAction);
-    rightMenu->addAction(newNoteGroupAction);
-    rightMenu->addAction(saveNoteAction);
-    rightMenu->addAction(moveNoteAction);
-    rightMenu->addAction(lockAction);
-    rightMenu->addAction(deleteNoteAction);
-    rightMenu->addAction(recoverNoteAction);
+    QTextCharFormat fmt;
+    if(ui->boldBtn->isChecked())
+    {
+        fmt.setFontWeight(QFont::Bold);
+    }
+    else
+    {
+        fmt.setFontWeight(QFont::Normal);
+    }
+    ui->textEdit->mergeCurrentCharFormat(fmt);
 }
 
+void MainWindow::italicBtn_clicked()
+{
+    QTextCharFormat fmt;
+    fmt.setFontItalic(ui->italicBtn->isChecked());
+    ui->textEdit->mergeCurrentCharFormat(fmt);
+}
+
+void MainWindow::underlineBtn_clicked()
+{
+    QTextCharFormat fmt;
+    fmt.setFontUnderline(ui->underlineBtn->isChecked());
+    ui->textEdit->mergeCurrentCharFormat(fmt);
+}
+
+void MainWindow::colorBtn_clicked()
+{
+    QColor color = QColorDialog::getColor(Qt::blue,this);
+    if(color.isValid()){
+        QTextCharFormat fmt;
+        fmt=ui->textEdit->currentCharFormat();
+        fmt.setForeground(color);
+        ui->textEdit->mergeCurrentCharFormat(fmt);
+    }
+}
+
+void MainWindow::onUndoBtn_clicked()
+{
+
+}
+
+void MainWindow::onSaveBtn_clicked()
+{
+    if(ui->treeWidget->selectedItems().length()==0)
+    {
+        return;
+    }
+    if(ui->treeWidget->currentItem()->childCount()>0)
+    {
+        return;
+    }
+    QString fullPath=util::treeItemToFullFilePath(ui->treeWidget->currentItem());
+    //解析出路径（不含文件名）和文件名
+    int first = fullPath.lastIndexOf ("/");
+    QString fileName = fullPath.right(fullPath.length ()-first-1); //xxxx.html
+    QString dirPath = fullPath.left (first); //文件夹路径
+
+    //如果路径不存在，则创建
+    QDir* dir = new QDir();
+    if(!dir->exists(dirPath)){
+        dir->mkpath(dirPath);
+    }
+
+    //创建一个输出文件的文档
+    QFile  myfile(fullPath);
+    //注意WriteOnly是往文本中写入的时候用，ReadOnly是在读文本中内容的时候用，Truncate表示将原来文件中的内容清空
+    if (myfile.open(QFile::WriteOnly|QFile::Truncate))
+    {
+        QTextStream out(&myfile);
+        out<<ui->textEdit->toHtml()<<Qt::endl;
+    }
+}
+
+void MainWindow::onPictureBtn_clicked()
+{
+    InsertImageDialog();
+}
+
+void MainWindow::InsertImageDialog()
+{
+    QString file = QFileDialog::getOpenFileName(this, tr("Select an image"),
+                                                ".", tr("Bitmap Files (*.bmp)\n"
+                                                        "JPEG (*.jpg *jpeg)\n"
+                                                        "GIF (*.gif)\n"
+                                                        "PNG (*.png)\n"));
+    QUrl Uri ( QString ( "file://%1" ).arg ( file ) );
+    QImage image = QImageReader ( file ).read();
+
+    QTextDocument * textDocument = ui->textEdit->document();
+    textDocument->addResource( QTextDocument::ImageResource, Uri, QVariant ( image ) );
+    QTextCursor cursor = ui->textEdit->textCursor();
+    QTextImageFormat imageFormat;
+    imageFormat.setWidth( image.width() );
+    imageFormat.setHeight( image.height() );
+    imageFormat.setName( Uri.toString() );
+    cursor.insertImage(imageFormat);
+}
+#pragma endregion }
+
+#pragma region Menu-Function{
 //right click Menu, new NoteGroup
 void MainWindow::onNewNoteGroupItemClick()
 {
@@ -145,9 +229,6 @@ void MainWindow::onNewNoteItemClick()
     setAllItemIcon();
 }
 
-//question：
-//父节点变成子节点后，可以编辑内容，但是一新增内容又变成了父节点，内容丢失，这里需要改下
-
 //右键菜单，删除笔记本操作
 void MainWindow::onDeleteNoteItemClick()
 {
@@ -164,7 +245,7 @@ void MainWindow::onDeleteNoteItemClick()
     else
     {
         //若是非回收站的数据
-        if(currentNode->nodeType==BaseInfo::Parent)
+        if(currentNode->nodeType==BaseInfo::Parent&&currentNode->childCount()>0)
         {
             QMessageBox::warning(this, tr("警告"),tr("\n无法批量删除,请选中单个笔记进行删除!"),QMessageBox::Ok);
             return;
@@ -224,6 +305,27 @@ void MainWindow::onMoveNoteItemClick()
 void MainWindow::onLockItemClick()
 {
     std::cout<<"lock menu"<<std::endl;
+}
+
+#pragma endregion}
+
+void MainWindow::initRightMenu()
+{
+    newNoteAction = new QAction("新建笔记", ui->treeWidget);
+    newNoteGroupAction = new QAction("新建笔记本", ui->treeWidget);
+    saveNoteAction = new QAction("收藏笔记", ui->treeWidget);
+    moveNoteAction = new QAction("移动笔记", ui->treeWidget);
+    lockAction = new QAction("添加密码锁", ui->treeWidget);
+    deleteNoteAction = new QAction("删除笔记", ui->treeWidget);
+    recoverNoteAction=new QAction("恢复笔记",ui->treeWidget);
+    rightMenu=new QMenu(ui->treeWidget);
+    rightMenu->addAction(newNoteAction);
+    rightMenu->addAction(newNoteGroupAction);
+    rightMenu->addAction(saveNoteAction);
+    rightMenu->addAction(moveNoteAction);
+    rightMenu->addAction(lockAction);
+    rightMenu->addAction(deleteNoteAction);
+    rightMenu->addAction(recoverNoteAction);
 }
 
 void MainWindow::onMenuToShow()
@@ -369,108 +471,6 @@ void MainWindow::setItemIcon(ExtraQTreeWidgetItem* child)
     {
          child->setIcon(0,QIcon(":/res/icons/childnote.png"));
     }
-}
-
-void MainWindow::boldBtn_clicked()
-{
-    QTextCharFormat fmt;
-    if(ui->boldBtn->isChecked())
-    {
-        fmt.setFontWeight(QFont::Bold);
-    }
-    else
-    {
-        fmt.setFontWeight(QFont::Normal);
-    }
-    ui->textEdit->mergeCurrentCharFormat(fmt);
-}
-
-void MainWindow::italicBtn_clicked()
-{
-    //InsertImageDialog();
-    QTextCharFormat fmt;
-    fmt.setFontItalic(ui->italicBtn->isChecked());
-    ui->textEdit->mergeCurrentCharFormat(fmt);
-
-}
-void MainWindow::underlineBtn_clicked()
-{
-    QTextCharFormat fmt;
-    fmt.setFontUnderline(ui->underlineBtn->isChecked());
-    ui->textEdit->mergeCurrentCharFormat(fmt);
-}
-
-void MainWindow::colorBtn_clicked()
-{
-    QColor color = QColorDialog::getColor(Qt::blue,this);
-    if(color.isValid()){
-        QTextCharFormat fmt;
-        fmt=ui->textEdit->currentCharFormat();
-        fmt.setForeground(color);
-        ui->textEdit->mergeCurrentCharFormat(fmt);
-    }
-}
-
-void MainWindow::onPictureBtn_clicked()
-{
-    InsertImageDialog();
-}
-
-void MainWindow::onUndoBtn_clicked()
-{
-
-}
-
-void MainWindow::onSaveBtn_clicked()
-{
-    if(ui->treeWidget->selectedItems().length()==0)
-    {
-        return;
-    }
-    if(ui->treeWidget->currentItem()->childCount()>0)
-    {
-        return;
-    }
-    QString fullPath=util::treeItemToFullFilePath(ui->treeWidget->currentItem());
-    //解析出路径（不含文件名）和文件名
-    int first = fullPath.lastIndexOf ("/");
-    QString fileName = fullPath.right(fullPath.length ()-first-1); //xxxx.html
-    QString dirPath = fullPath.left (first); //文件夹路径
-
-    //如果路径不存在，则创建
-    QDir* dir = new QDir();
-    if(!dir->exists(dirPath)){
-        dir->mkpath(dirPath);
-    }
-
-    //创建一个输出文件的文档
-    QFile  myfile(fullPath);
-    //注意WriteOnly是往文本中写入的时候用，ReadOnly是在读文本中内容的时候用，Truncate表示将原来文件中的内容清空
-    if (myfile.open(QFile::WriteOnly|QFile::Truncate))
-    {
-        QTextStream out(&myfile);
-        out<<ui->textEdit->toHtml()<<Qt::endl;
-    }
-}
-
-void MainWindow::InsertImageDialog()
-{
-    QString file = QFileDialog::getOpenFileName(this, tr("Select an image"),
-                                                ".", tr("Bitmap Files (*.bmp)\n"
-                                                        "JPEG (*.jpg *jpeg)\n"
-                                                        "GIF (*.gif)\n"
-                                                        "PNG (*.png)\n"));
-    QUrl Uri ( QString ( "file://%1" ).arg ( file ) );
-    QImage image = QImageReader ( file ).read();
-
-    QTextDocument * textDocument = ui->textEdit->document();
-    textDocument->addResource( QTextDocument::ImageResource, Uri, QVariant ( image ) );
-    QTextCursor cursor = ui->textEdit->textCursor();
-    QTextImageFormat imageFormat;
-    imageFormat.setWidth( image.width() );
-    imageFormat.setHeight( image.height() );
-    imageFormat.setName( Uri.toString() );
-    cursor.insertImage(imageFormat);
 }
 
 void MainWindow::onTitleLineEditEditingFinished() {
