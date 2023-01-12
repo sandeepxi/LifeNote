@@ -141,6 +141,9 @@
     <item>
      <widget class="QWidget" name="mainPage" native="true">
       <layout class="QHBoxLayout" name="horizontalLayout_2">
+       <property name="sizeConstraint">
+        <enum>QLayout::SetDefaultConstraint</enum>
+       </property>
        <property name="leftMargin">
         <number>0</number>
        </property>
@@ -157,7 +160,7 @@
         <widget class="QWidget" name="leftBar" native="true">
          <property name="minimumSize">
           <size>
-           <width>0</width>
+           <width>140</width>
            <height>0</height>
           </size>
          </property>
@@ -195,6 +198,9 @@
               <height>16777215</height>
              </size>
             </property>
+            <property name="autoScrollMargin">
+             <number>10</number>
+            </property>
             <column>
              <property name="text">
               <string notr="true">1</string>
@@ -228,7 +234,7 @@
            <number>-1</number>
           </property>
           <property name="leftMargin">
-           <number>12</number>
+           <number>0</number>
           </property>
           <property name="topMargin">
            <number>12</number>
@@ -243,6 +249,12 @@
            <widget class="QLineEdit" name="titleLineEdit">
             <property name="enabled">
              <bool>true</bool>
+            </property>
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
             </property>
             <property name="minimumSize">
              <size>
@@ -265,6 +277,12 @@
           </item>
           <item>
            <widget class="QTextEdit" name="textEdit">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
             <property name="autoFillBackground">
              <bool>false</bool>
             </property>

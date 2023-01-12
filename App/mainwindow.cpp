@@ -1,6 +1,7 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 #include "util.h"
+#include <QMouseEvent>
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -54,7 +55,7 @@ MainWindow::MainWindow(QWidget *parent)
 
     initRightMenu();
 
-    //设置标题栏信号槽
+    //设置信号槽
     connect(ui->boldBtn,SIGNAL(clicked()),this,SLOT(boldBtn_clicked()));
     connect(ui->italicBtn,SIGNAL(clicked()),this,SLOT(italicBtn_clicked()));
     connect(ui->underlineBtn,SIGNAL(clicked()),this,SLOT(underlineBtn_clicked()));
@@ -188,6 +189,7 @@ void MainWindow::onNewNoteGroupItemClick()
         return;
     }
     QTreeWidgetItem *newItem=new ExtraQTreeWidgetItem(BaseInfo::Parent);
+    ((ExtraQTreeWidgetItem*)newItem)->isNewNode=1;
     QString newNodeGroupName=util::NoRepeatNodeName(ui->treeWidget->currentItem(),"新建笔记本");
     newItem->setText(0,newNodeGroupName);
     auto currentNode=ui->treeWidget->currentItem();
@@ -213,6 +215,7 @@ void MainWindow::onNewNoteItemClick()
         return;
     }
     QTreeWidgetItem *newItem=new ExtraQTreeWidgetItem(BaseInfo::Child);
+    ((ExtraQTreeWidgetItem*)newItem)->isNewNode=1;
     QString newNodeName=util::NoRepeatNodeName(ui->treeWidget->currentItem(),"无标题");
     newItem->setText(0,newNodeName);
     auto currentNode=ui->treeWidget->currentItem();
@@ -308,6 +311,17 @@ void MainWindow::onLockItemClick()
 }
 
 #pragma endregion}
+
+void MainWindow::keyPressEvent(QKeyEvent* event)
+{
+    if (event->key() == Qt::Key_Enter|| event->key() == Qt::Key_Return )
+    {
+        //todo not work
+        QTextCursor tmpCursor = ui->textEdit->textCursor();
+        tmpCursor.movePosition(QTextCursor::Left, QTextCursor::MoveAnchor, 4);
+        ui->textEdit->setTextCursor(tmpCursor);
+    }
+}
 
 void MainWindow::initRightMenu()
 {
@@ -479,13 +493,30 @@ void MainWindow::onTitleLineEditEditingFinished() {
   {
     return;
   }
+
+  auto oldPath=util::treeItemToNodePath(ui->treeWidget->currentItem());
+  auto fileFullPath=util::treeItemToFullFilePath(ui->treeWidget->currentItem());
+  auto fileNewPath=util::treeItemToNodeDirPath(ui->treeWidget->currentItem());
   ui->treeWidget->currentItem()->setText(0, ui->titleLineEdit->text());
 
   // update the local file change
   auto extraItem =dynamic_cast<ExtraQTreeWidgetItem *>(ui->treeWidget->currentItem());
-  BaseInfo::OperationType type = extraItem->nodeType == BaseInfo::Child
-                                     ? BaseInfo::AddNode
-                                     : BaseInfo::AddNodeGroup;
+  BaseInfo::OperationType type = extraItem->isNewNode==1?
+              (extraItem->nodeType == BaseInfo::Child ?
+                   BaseInfo::AddNode:
+                   BaseInfo::AddNodeGroup)
+             :BaseInfo::RenameNode;
+  if(type==BaseInfo::RenameNode)
+  {
+      if(((ExtraQTreeWidgetItem*)ui->treeWidget->currentItem())->nodeType==BaseInfo::Child)
+      {
+          QFile file(fileFullPath);
+          file.rename( fileNewPath+"/"+ui->titleLineEdit->text()+".html");
+      }
+      config->updateXmlRenameNode(oldPath,ui->treeWidget->currentItem());
+      return;
+  }
+
   config->updateXml(type, ui->treeWidget->currentItem()->parent(),ui->treeWidget->currentItem());
 
   if (type == BaseInfo::AddNodeGroup)
@@ -497,6 +528,7 @@ void MainWindow::onTitleLineEditEditingFinished() {
     {
       dir->mkpath(dirpath);
     }
+    extraItem->isNewNode=0;//reset isNewNode status
   }
   else if (type == BaseInfo::AddNode)
   {
@@ -508,6 +540,7 @@ void MainWindow::onTitleLineEditEditingFinished() {
     {
       myfile.close();
     }
+    extraItem->isNewNode=0;//reset isNewNode status
   }
 }
 

@@ -18,6 +18,7 @@ public:
        AddNodeGroup,
        DeleteNode,
        MoveNode,
+       RenameNode,
     };
 
     enum NodeType

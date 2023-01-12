@@ -74,6 +74,38 @@ void nodeconfig::updateXml(BaseInfo::OperationType type,QTreeWidgetItem *current
     file.close();
 }
 
+
+void nodeconfig::updateXmlRenameNode(const QString& oldPath,QTreeWidgetItem *currentNode)
+{
+    QFile file(CONFIG_PATH);
+
+    if(!file.open(QIODevice::ReadOnly))
+    {
+        std::cout<<"open local xml failed";
+        return;
+    }
+    QDomDocument doc;
+    if(!doc.setContent(&file))//从字节数组中解析XML文档，并将其设置为文档的内容
+    {
+        std::cout<<"set doc content form file failed";
+        file.close();
+        return;
+    }
+    file.close();
+    QDomNode currentDomElement=selectSingleNode(oldPath,&doc);
+    //Check whether the node name starts with a digit， xml nodename is invaild start with digit
+    bool startWithDigit=util::isStartWidthDigit(currentNode->text(0));
+    currentDomElement.toElement().setTagName(startWithDigit?(START_FLAG+currentNode->text(0)):currentNode->text(0));
+
+    if(!file.open(QFile::WriteOnly|QFile::Truncate))//重写文件，如果不用truncate就是在后面追加内容，就无效了
+    {
+        return;
+    }
+    QTextStream out_stream(&file);
+    doc.save(out_stream,4);
+    file.close();
+}
+
 //XML struct is seem like qtreeWidget ,is a tree
 //The node is added to the treewidget by loop the xml document
 void nodeconfig::loadConfigXML(QTreeWidget *tree_widget)

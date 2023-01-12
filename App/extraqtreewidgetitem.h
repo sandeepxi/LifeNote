@@ -15,8 +15,13 @@ public:
     //1 is recycleParentNode,defaule is 0
     bool isRecyleParent= 0;
 
+    //1 is newNode which is create soon,0 is old node,do rename operation,don't need to add xml.
+    //defaule is 0
+    int isNewNode=0;
+
     //this is to distinguish menu add note（新建笔记） or menu add node group（新建笔记本）
     BaseInfo::NodeType nodeType=BaseInfo::Child;
+
 };
 
 
