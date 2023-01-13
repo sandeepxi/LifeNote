@@ -497,7 +497,10 @@ void MainWindow::onTitleLineEditEditingFinished() {
   auto oldPath=util::treeItemToNodePath(ui->treeWidget->currentItem());
   auto fileFullPath=util::treeItemToFullFilePath(ui->treeWidget->currentItem());
   auto fileNewPath=util::treeItemToNodeDirPath(ui->treeWidget->currentItem());
+  auto oldName=ui->treeWidget->currentItem()->text(0);
+
   ui->treeWidget->currentItem()->setText(0, ui->titleLineEdit->text());
+
 
   // update the local file change
   auto extraItem =dynamic_cast<ExtraQTreeWidgetItem *>(ui->treeWidget->currentItem());
@@ -505,13 +508,26 @@ void MainWindow::onTitleLineEditEditingFinished() {
               (extraItem->nodeType == BaseInfo::Child ?
                    BaseInfo::AddNode:
                    BaseInfo::AddNodeGroup)
-             :BaseInfo::RenameNode;
+              :BaseInfo::RenameNode;
   if(type==BaseInfo::RenameNode)
   {
       if(((ExtraQTreeWidgetItem*)ui->treeWidget->currentItem())->nodeType==BaseInfo::Child)
       {
           QFile file(fileFullPath);
-          file.rename( fileNewPath+"/"+ui->titleLineEdit->text()+".html");
+          file.rename(fileNewPath+"/"+ui->titleLineEdit->text()+".html");
+      }
+      else
+      {
+          QString parentFullPath=util::treeItemToFullFilePath(ui->treeWidget->currentItem()->parent(),BaseInfo::Parent);
+          QString newDir=QString("%1/%2").arg(parentFullPath,ui->titleLineEdit->text());
+          QString oldDir=QString("%1/%2").arg(parentFullPath,oldName);
+          QDir _dir(oldDir);
+          qDebug()<<oldDir;
+          qDebug()<<newDir;
+          if (_dir.exists())
+          {
+             _dir.rename(oldDir, newDir);
+          }
       }
       config->updateXmlRenameNode(oldPath,ui->treeWidget->currentItem());
       return;
