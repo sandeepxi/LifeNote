@@ -12,8 +12,6 @@ public:
     //0 is normal
     //1 is deleted
     int deleteType = 0;
-    //1 is recycleParentNode,defaule is 0
-    bool isRecyleParent= 0;
 
     //1 is newNode which is create soon,0 is old node,do rename operation,don't need to add xml.
     //defaule is 0

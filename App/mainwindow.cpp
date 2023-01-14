@@ -350,11 +350,30 @@ void MainWindow::onMenuToShow()
     {
         newNoteAction->setVisible(false);
         newNoteGroupAction->setVisible(false);
+        saveNoteAction->setVisible(true);
     }
     else
     {
         newNoteAction->setVisible(true);
         newNoteGroupAction->setVisible(true);
+        saveNoteAction->setVisible(false);
+    }
+    if(item->parent()==NULL)
+    {
+        deleteNoteAction->setVisible(false);
+    }
+    else
+    {
+        deleteNoteAction->setVisible(true);
+        bool isRecycle=item->parent()->text(0)==RECYLE; //is recycle Node
+        if(isRecycle)
+        {
+             recoverNoteAction->setVisible(true);
+        }
+        else
+        {
+             recoverNoteAction->setVisible(false);
+        }
     }
 }
 
