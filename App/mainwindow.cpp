@@ -31,12 +31,14 @@ MainWindow::MainWindow(QWidget *parent)
 
     //设置背景色为透明
     ui->treeWidget->setStyleSheet("background-color:transparent;");
-    setStyleSheet("QTreeWidget::item{""height:25px;""}");
+    setStyleSheet("QTreeWidget::item{height:25px;} ");
+    //下面这句代码 修改选中行的颜色，但是改的不是很完美，故先注释
+    //setStyleSheet("QTreeWidget::item{height:25px;} QTreeView::branch::selected{background-color:#5087E5;} QTreeView::item::selected{background-color:#5087E5;}");
+
     //设置不同层次菜单的缩进
-    ui->treeWidget->setIndentation(15);
+    ui->treeWidget->setIndentation(9);
     //设置边框不可见
     ui->treeWidget->setFrameStyle(QFrame::NoFrame);
-
     //通过配置文件，创建node
     config->loadConfigXML(ui->treeWidget);
 
@@ -430,12 +432,12 @@ void MainWindow::currentTreeItemChanged(QTreeWidgetItem *current, QTreeWidgetIte
          ui->textEdit->setHtml("");
          ui->titleLineEdit->setText(current->text(0));
          //not allow to edit the Nodegroup
-         ui->textEdit->setEnabled(false);
+         ui->textEdit->setReadOnly(true);
          return;
     }
     else
     {
-         ui->textEdit->setEnabled(true);
+         ui->textEdit->setReadOnly(false);
     }
     //load current node‘s title to right-titleLineEdit title
     ui->titleLineEdit->setText(current->text(0));
@@ -485,7 +487,18 @@ void MainWindow::setItemIcon(ExtraQTreeWidgetItem* child)
     int childCount = child->childCount();
     if(childCount>0||child->nodeType==BaseInfo::Parent)
     {
-         child->setIcon(0,QIcon(":/res/icons/parentnote.png"));
+         if(child->parent()==NULL&&child->text(0)==COLLECT) //顶级系统节点-收藏
+         {
+             child->setIcon(0,QIcon(":/res/icons/save.png"));
+         }
+         else if(child->parent()==NULL&&child->text(0)==RECYLE)//顶级系统节点-废纸篓
+         {
+             child->setIcon(0,QIcon(":/res/icons/recycle.png"));
+         }
+         else
+         {
+             child->setIcon(0,QIcon(":/res/icons/parentnote.png"));
+         }
          for (int j = 0; j < childCount; ++j)
          {
              ExtraQTreeWidgetItem * grandson = dynamic_cast<ExtraQTreeWidgetItem*>(child->child(j));
@@ -506,23 +519,33 @@ void MainWindow::setItemIcon(ExtraQTreeWidgetItem* child)
     }
 }
 
-void MainWindow::onTitleLineEditEditingFinished() {
+void MainWindow::onTitleLineEditEditingFinished()
+{
   qDebug("onTitleLineEditEditingFinished");
   if (ui->titleLineEdit->text().length() == 0)
   {
      return;
   }
+  auto currentItem=ui->treeWidget->currentItem();
+  if(currentItem->parent()==NULL)
+  {
+      if(currentItem->text(0)==COLLECT||currentItem->text(0)==RECYLE)
+      {
+          QMessageBox::warning(this, tr("警告"),tr("\n系统节点无法重命名!"),QMessageBox::Ok);
+          return;
+      }
+  }
 
-  auto oldPath=util::treeItemToNodePath(ui->treeWidget->currentItem());
-  auto fileFullPath=util::treeItemToFullFilePath(ui->treeWidget->currentItem());
-  auto fileNewPath=util::treeItemToNodeDirPath(ui->treeWidget->currentItem());
-  auto oldName=ui->treeWidget->currentItem()->text(0);
+  auto oldPath=util::treeItemToNodePath(currentItem);
+  auto fileFullPath=util::treeItemToFullFilePath(currentItem);
+  auto fileNewPath=util::treeItemToNodeDirPath(currentItem);
+  auto oldName=currentItem->text(0);
 
-  ui->treeWidget->currentItem()->setText(0, ui->titleLineEdit->text());
+  currentItem->setText(0, ui->titleLineEdit->text());
 
 
   // update the local file change
-  auto extraItem =dynamic_cast<ExtraQTreeWidgetItem *>(ui->treeWidget->currentItem());
+  auto extraItem =dynamic_cast<ExtraQTreeWidgetItem *>(currentItem);
   BaseInfo::OperationType type = extraItem->isNewNode==1?
               (extraItem->nodeType == BaseInfo::Child ?
                    BaseInfo::AddNode:
@@ -530,14 +553,19 @@ void MainWindow::onTitleLineEditEditingFinished() {
               :BaseInfo::RenameNode;
   if(type==BaseInfo::RenameNode)
   {
-      if(((ExtraQTreeWidgetItem*)ui->treeWidget->currentItem())->nodeType==BaseInfo::Child)
+      if(((ExtraQTreeWidgetItem*)currentItem)->nodeType==BaseInfo::Child)
       {
           QFile file(fileFullPath);
           file.rename(fileNewPath+"/"+ui->titleLineEdit->text()+".html");
       }
       else
       {
-          QString parentFullPath=util::treeItemToFullFilePath(ui->treeWidget->currentItem()->parent(),BaseInfo::Parent);
+          QString parentFullPath = QString("%1/storage").arg(QCoreApplication::applicationDirPath());
+
+          if(currentItem->parent()!=NULL)
+          {
+              parentFullPath=util::treeItemToFullFilePath(currentItem->parent(),BaseInfo::Parent);
+          }
           QString newDir=QString("%1/%2").arg(parentFullPath,ui->titleLineEdit->text());
           QString oldDir=QString("%1/%2").arg(parentFullPath,oldName);
           QDir _dir(oldDir);
@@ -548,11 +576,11 @@ void MainWindow::onTitleLineEditEditingFinished() {
              _dir.rename(oldDir, newDir);
           }
       }
-      config->updateXmlRenameNode(oldPath,ui->treeWidget->currentItem());
+      config->updateXmlRenameNode(oldPath,currentItem);
       return;
   }
 
-  config->updateXml(type, ui->treeWidget->currentItem()->parent(),ui->treeWidget->currentItem());
+  config->updateXml(type, currentItem->parent(),currentItem);
 
   if (type == BaseInfo::AddNodeGroup)
   {
@@ -568,7 +596,7 @@ void MainWindow::onTitleLineEditEditingFinished() {
   else if (type == BaseInfo::AddNode)
   {
     //创建本地空文档html
-    QString filePath = util::treeItemToFullFilePath(ui->treeWidget->currentItem(), BaseInfo::Child);
+    QString filePath = util::treeItemToFullFilePath(currentItem, BaseInfo::Child);
     QFile myfile(filePath);
     //注意WriteOnly是往文本中写入的时候用，ReadOnly是在读文本中内容的时候用，Truncate表示将原来文件中的内容清空
     if (myfile.open(QFile::WriteOnly))
