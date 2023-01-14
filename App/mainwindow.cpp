@@ -316,9 +316,9 @@ void MainWindow::keyPressEvent(QKeyEvent* event)
 {
     if (event->key() == Qt::Key_Enter|| event->key() == Qt::Key_Return )
     {
-        //todo not work
+        ui->textEdit->setFocus();
         QTextCursor tmpCursor = ui->textEdit->textCursor();
-        tmpCursor.movePosition(QTextCursor::Left, QTextCursor::MoveAnchor, 4);
+        tmpCursor.movePosition(QTextCursor::Left, QTextCursor::MoveAnchor, 0);
         ui->textEdit->setTextCursor(tmpCursor);
     }
 }
@@ -491,7 +491,7 @@ void MainWindow::onTitleLineEditEditingFinished() {
   qDebug("onTitleLineEditEditingFinished");
   if (ui->titleLineEdit->text().length() == 0)
   {
-    return;
+     return;
   }
 
   auto oldPath=util::treeItemToNodePath(ui->treeWidget->currentItem());
