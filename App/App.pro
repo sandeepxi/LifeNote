@@ -9,25 +9,32 @@ CONFIG += c++17
 # In order to do so, uncomment the following line.
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 ICON = logo.icns
+INCLUDEPATH += \
+    $$PWD/controls \
+    $$PWD/windows \
+    $$PWD/base \
+    $$PWD/util
+
 SOURCES += \
-    extraqtreewidgetitem.cpp \
+    controls/extraqtreewidgetitem.cpp \
     main.cpp \
-    mainwindow.cpp \
+    windows/mainwindow.cpp \
     nodeconfig.cpp \
-    svgtextlabel.cpp \
-    util.cpp
+    controls/svgtextlabel.cpp \
+    util/util.cpp
 
 HEADERS += \
-    baseinfo.h \
-    extraqtreewidgetitem.h \
-    mainwindow.h \
+    base/baseinfo.h \
+    controls/extraqtreewidgetitem.h \
+    windows/mainwindow.h \
     nodeconfig.h \
-    svgtextlabel.h \
-    util.h
+    controls/svgtextlabel.h \
+
+    util/util.h
 
 FORMS += \
-    mainwindow.ui \
-    svgtextlabel.ui
+    windows/mainwindow.ui \
+    controls/svgtextlabel.ui
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin
